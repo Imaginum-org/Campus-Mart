@@ -114,7 +114,7 @@ export const loginController = async (req, res) => {
             });
         }
 
-        if (!user.is_email_verified || user.status !== "Active") {
+        if (!user.is_email_verified && user.status !== "Active") {
             return res.status(403).json({
                 message: "Please verify your email address to activate your account.",
                 success: false,
