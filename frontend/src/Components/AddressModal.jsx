@@ -13,26 +13,26 @@ const AddressModal = ({ isOpen, onClose, onSave, initialData }) => {
 
   const [loadingLocation, setLoadingLocation] = useState(false);
 
-
   useEffect(() => {
     if (initialData) {
       setFormData(prev => ({ ...prev, ...initialData }));
     }
   }, [initialData, isOpen]);
 
- const handleChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
 
     // specific check for Pincode to allow only numbers
     if (name === "pincode") {
       // Regex: Only allow digits, max 6 characters (standard Indian pincode)
       if (!/^\d*$/.test(value) || value.length > 6) {
-        return; 
+        return;
       }
     }
 
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
   const handleSubmit = () => {
     onSave(formData);
     onClose();
@@ -49,12 +49,12 @@ const AddressModal = ({ isOpen, onClose, onSave, initialData }) => {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
-        
+
           const res = await fetch(
             `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`
           );
           const data = await res.json();
-          
+
           setFormData(prev => ({
             ...prev,
             city: data.city || data.locality || "",
@@ -96,7 +96,7 @@ const AddressModal = ({ isOpen, onClose, onSave, initialData }) => {
           </div>
 
           <div className="flex flex-col gap-4">
-            <button 
+            <button
               onClick={handleCurrentLocation}
               disabled={loadingLocation}
               className="flex items-center text-sm lg:text-[15px] justify-center gap-2 w-full py-3 border border-gray-300 rounded-[10px] text-gray-700 font-medium hover:bg-gray-50 transition-colors dark:border-gray-600 dark:text-gray-300 dark:hover:bg-[#2a2e33]"
@@ -124,21 +124,21 @@ const AddressModal = ({ isOpen, onClose, onSave, initialData }) => {
             />
 
             <div className="flex gap-4">
-              <input 
-                 type="text"
-                 name="state"
-                 value={formData.state}
-                 onChange={handleChange}
-                 placeholder="State"
-                 className="w-1/2 p-3 border border-gray-300 rounded-[10px] focus:outline-none focus:border-blue-500 dark:bg-[#2D3339] dark:border-gray-600 dark:text-white text-[12px] lg:text-[13px]"
+              <input
+                type="text"
+                name="state"
+                value={formData.state}
+                onChange={handleChange}
+                placeholder="State"
+                className="w-1/2 p-3 border border-gray-300 rounded-[10px] focus:outline-none focus:border-blue-500 dark:bg-[#2D3339] dark:border-gray-600 dark:text-white text-[12px] lg:text-[13px]"
               />
-               <input 
-                 type="text"
-                 name="city"
-                 value={formData.city}
-                 onChange={handleChange}
-                 placeholder="City"
-                 className="w-1/2 p-3 border border-gray-300 rounded-[10px] focus:outline-none focus:border-blue-500 dark:bg-[#2D3339] dark:border-gray-600 dark:text-white text-[12px] lg:text-[13px]"
+              <input
+                type="text"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                placeholder="City"
+                className="w-1/2 p-3 border border-gray-300 rounded-[10px] focus:outline-none focus:border-blue-500 dark:bg-[#2D3339] dark:border-gray-600 dark:text-white text-[12px] lg:text-[13px]"
               />
             </div>
 

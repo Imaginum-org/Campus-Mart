@@ -48,12 +48,15 @@ function Login() {
           email: email,
           password: password,
         },
-        withCredentials: true, 
+        withCredentials: true,
       });
 
       if (response.data.success) {
         toast.success(response.data.message || "Logged in successfully!");
-        navigate("/"); 
+
+        localStorage.setItem("isAuthenticated", "true"); 
+        
+        navigate("/profile"); 
       }
     } catch (error) {
       const errorMessage = error.response?.data?.message || "An error occurred connecting to the server.";
