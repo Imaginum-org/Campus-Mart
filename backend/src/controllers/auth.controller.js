@@ -7,8 +7,7 @@ import sendEmail from "../config/sendEmail.js";
 import generatedAccessToken from "../utils/generatedAccessToken.js";
 import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import verifyEmailTempplate from "../utils/templates/verifyEmailTemplate.js";
-import dotenv from "dotenv";
-dotenv.config();
+
 
 export const registerUserController = async (req, res) => {
     try {

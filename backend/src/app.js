@@ -5,8 +5,7 @@ import morgan from 'morgan';
 import helmet from "helmet";
 import authRouter from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
-import dotenv from "dotenv";
-dotenv.config();
+
 const app = express();
 
 app.use(cors({
