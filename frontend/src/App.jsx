@@ -25,6 +25,7 @@ import { Toaster } from "react-hot-toast";
 import Loader from "./Components/Loder";
 import ProductCategory from "./Pages/ProductCategory.jsx"
 import ProtectedRoute from "./Components/ProtectedRoute.jsx";
+import CheckEmail from "./Pages/CheckEmail";
 
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/checkEmail" element={<CheckEmail />} />
 
         <Route path="/profile" element={
           <ProtectedRoute>
