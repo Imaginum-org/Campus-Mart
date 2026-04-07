@@ -7,7 +7,7 @@ import helmet from "helmet";
 import authRouter from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
 
-import errorMiddleware from "./middlewares/error.middleware.js";
+// import errorMiddleware from "./middlewares/error.middleware.js";
 
 const app = express();
 
@@ -51,6 +51,6 @@ app.use((req, res) => {
   });
 });
 
-app.use(errorMiddleware);
+// app.use(errorMiddleware);
 
 export default app;

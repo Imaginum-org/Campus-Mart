@@ -1,6 +1,5 @@
 import jwt from "jsonwebtoken";
 
-
 const auth = async (req, res, next) => {
   try {
     let token;
@@ -16,22 +15,19 @@ const auth = async (req, res, next) => {
       return res.status(401).json({
         message: "Access token required",
         success: false,
-        error: true
+        error: true,
       });
     }
-    
 
     const decode = jwt.verify(token, process.env.SECRET_KEY_ACCESS_TOKEN);
     req.userId = decode.id;
-    
-
 
     next();
   } catch (err) {
     return res.status(401).json({
       message: "Invalid token",
       success: false,
-      error: true
+      error: true,
     });
   }
 };

@@ -8,7 +8,6 @@ import generatedAccessToken from "../utils/generatedAccessToken.js";
 import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import verifyEmailTempplate from "../utils/templates/verifyEmailTemplate.js";
 
-
 export const registerUserController = async (req, res) => {
     try {
         let { name, email, password } = req.body;
