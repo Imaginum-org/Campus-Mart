@@ -14,18 +14,24 @@ import { IoIosHeartEmpty } from "react-icons/io";
 import { CiMail } from "react-icons/ci";
 import { MdOutlineLogout } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
-
+import axios  from "axios";
 import { IoChevronBackOutline } from "react-icons/io5";
+import  SummaryApi  from "../Common/SummaryApi";
+import { baseURL } from "../Common/SummaryApi";
 
 const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
+  
   const [search, setSearch] = useState("");
   const [darkMode, setDarkMode] = useState(false);
   const [notification, setNotification] = useState(1);
   const [showmenu, setShowmenu] = useState(false);
   const [user, setUser] = useState(null);
-
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [fade, setFade] = useState(true);
   const menuRef = useRef(null);
-
+  const navigate = useNavigate();
+  
   const placeholderWords = [
     "Electronics",
     "Book",
@@ -33,10 +39,6 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
     "Essential",
     "Mattress",
   ];
-  const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const [fade, setFade] = useState(true);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     const handleOutsideInteraction = (event) => {
@@ -69,7 +71,6 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, [showmenu]);
-
  
 
   useEffect(() => {
@@ -109,18 +110,36 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
   const goToLogin = () => navigate("/login");
   const goToSignup = () => navigate("/signup");
 
+  useEffect(() => {
+    const authStatus = localStorage.getItem("isAuthenticated");
+    if (authStatus === "true") {
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, []);
+
   const handleLogoutClick = async () => {
     try {
-      await auth.signOut();
-      setShowmenu(false);
-      navigate("/");
+      const response =await axios({
+         method : SummaryApi.logoutUser.method,
+          url : `${baseURL}${SummaryApi.logoutUser.url}`,
+          withCredentials : true
+      })
+     
+      if(response.data.success){
+        localStorage.removeItem("isAuthenticated");
+
+        setIsLoggedIn(false);
+        setShowmenu(false);
+        navigate("/login");
+      }
     } catch (err) {
       console.error("Logout error:", err);
     }
   };
 
-  const loggedin = Boolean(user);
-  const profileSrc = user ? user.photoURL || LoggedImage : DefaultAvatar;
+  const profileSrc = DefaultAvatar;
 
   return (
     <>
@@ -203,7 +222,7 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
             </div>
 
             <div className="py-1">
-              {loggedin ? (
+              {isLoggedIn ? (
                 <>
                   {[
                     { to: "/profile", icon: <LuUserRound />, label: "Profile" },
@@ -266,7 +285,7 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
         )}
       </AnimatePresence>
 
-      {loggedin ? (
+      {isLoggedIn ? (
         <nav
           style={{ backgroundColor: color, color: textColor }}
           className={`hidden sm:flex text-black items-center justify-between pt-6 pb-3 md:pb-3 sm:pl-10 md:pr-10 lg:pl-[4.6vw] lg:pr-[4.6vw] lg:pb-2 lg:pt-5 xl:pb-4 xl:pt-5 relative dark:bg-[#131313]`}

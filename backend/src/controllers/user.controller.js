@@ -43,7 +43,7 @@ export const deleteAccount = async (req, res) => {
                 message: "User not found or already deleted",
                 success: false,
                 error: true
-            });
+            });  
         }
 
         const isProduction = process.env.NODE_ENV === "production";
