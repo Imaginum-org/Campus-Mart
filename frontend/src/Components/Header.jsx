@@ -25,7 +25,7 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
   const [darkMode, setDarkMode] = useState(false);
   const [notification, setNotification] = useState(1);
   const [showmenu, setShowmenu] = useState(false);
-  const [user, setUser] = useState(null);
+  const [userDetails, setUserDetails] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [fade, setFade] = useState(true);
@@ -118,6 +118,38 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
       setIsLoggedIn(false);
     }
   }, []);
+
+ useEffect(() => {
+    const fetchUserProfile = async () => {
+      try{
+
+        const response =await axios({
+          method : SummaryApi.userProfile.method,
+          url : `${baseURL}${SummaryApi.userProfile.url}`,
+          withCredentials : true
+        });
+        if(response.data.success){
+          setUserDetails(response.data.user);
+          
+        }
+      }
+      catch(error){
+       if (error.response?.status === 401) {
+          toast.error("Session expired. Please log in again.");
+          localStorage.removeItem("isAuthenticated"); 
+          navigate("/login"); 
+        } else {
+          toast.error("Failed to load profile data");
+        }
+      }
+      finally {
+        setLoading(false); 
+      }
+
+    }
+    fetchUserProfile();
+  },[navigate])
+
 
   const handleLogoutClick = async () => {
     try {
@@ -213,10 +245,10 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
               />
               <div className="overflow-hidden">
                 <p className="font-semibold text-base dark:text-white truncate">
-                  {user?.displayName || "Guest User"}
+                  {userDetails.name || "Guest User"}
                 </p>
                 <p className="text-xs text-gray-500 truncate">
-                  {user?.email || "Welcome to Campus Mart"}
+                  {userDetails.email || "Welcome to Campus Mart"}
                 </p>
               </div>
             </div>
@@ -315,10 +347,10 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
                   />
                   <div>
                     <h1 className="text-black font-medium text-sm sm:text-base">
-                      {user?.displayName || "User"}
+                      {userDetails.name || "User"}
                     </h1>
-                    <h2 className="text-[#64707D] text-xs sm:text-sm font-medium">
-                      {user?.email || ""}
+                    <h2 className="text-[#64707D] text-xs sm:text-[11px] font-medium">
+                      {userDetails.email || ""}
                     </h2>
                   </div>
                 </Link>

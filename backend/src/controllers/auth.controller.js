@@ -7,6 +7,7 @@ import sendEmail from "../config/sendEmail.js";
 import generatedAccessToken from "../utils/generatedAccessToken.js";
 import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import verifyEmailTempplate from "../utils/templates/verifyEmailTemplate.js";
+import {generateOtp} from "../utils/generateOtp.js";
 
 export const registerUserController = async (req, res) => {
     try {
@@ -104,7 +105,7 @@ export const loginController = async (req, res) => {
         
         if (!user) {
             return res.status(400).json({
-                message: "Invalid email or password", 
+                message: "User with this email does not exist. Please register first.", 
                 success: false,
                 error: true
             });
@@ -229,3 +230,102 @@ export const logoutUser = async (req, res) => {
         });
     }
 };
+
+export const forgotPasswordController = async (req, res) => {
+    try{
+        const { email } = req.body;
+        
+        const user =await userModel.findOne({ email });
+        if(!user){
+            return res.status(404).json({
+                message : "User with this email does'nt exists",
+                success: false,
+                error: true
+            })
+        }
+        const otp = await generateOtp();
+        const expireTime = Date.now() + 10 * 60 * 1000; // OTP valid for 10 minutes
+
+        const update = await userModel.findByIdAndUpdate(user._id,{
+            forgot_password_otp : otp,
+            forgot_password_expiry : expireTime 
+
+        })
+
+        await sendEmail({
+            sendTo : email,
+            subject : "Forgot password from Campus Mart",
+            html : forgotPaswordTemplate({
+                user : user.name ,
+                otp : otp
+            }) 
+        })
+
+        return res.status(200).json({
+            message: "Otp sent to your email address, please check your inbox",
+            success : true ,
+            error :false 
+        })
+    }
+    catch(error){
+        return res.status(500).json({
+            message : error.message || error,
+            success : false,
+            error : true
+        })
+    }
+}
+
+export const verifyforgotPasswordOtpController = async (req, res) => {
+    try{
+        const { email,otp } = req.body ;
+        if(!email || !otp ){
+            return res.status(400).json({
+                message : "Please Provide Email and Otp ",
+                success : false ,
+                error : true 
+            })
+        } 
+
+        const  user = await userModel.findOne({email}).select("+forgot_password_otp");
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+                success: false,
+                error: true 
+            });
+        }
+
+        const currentTime = Date.now();
+        if(user.forgot_password_expiry < currentTime){
+            return res.status(400).json({
+                message : "Otp is expired",
+                success : false,
+                error : true 
+            })
+        }
+
+        if(otp!==user.forgot_password_otp){
+            return res.status(400).json({
+                message : "Invalid Otp ",
+                success : false ,
+                error :true 
+            })
+        }
+
+        return res.status(200).json({
+            message : "Otp Verified",
+            success :true ,
+            error : false 
+        })
+    }
+    catch(error){
+        return res.status(500).json({
+            message : error.message || error ,
+            success : false ,
+            error : true
+        })
+    }
+     
+}

@@ -56,7 +56,7 @@ function Login() {
 
         localStorage.setItem("isAuthenticated", "true"); 
         
-        navigate("/profile"); 
+        navigate("/"); 
       }
     } catch (error) {
       const errorMessage = error.response?.data?.message || "An error occurred connecting to the server.";
