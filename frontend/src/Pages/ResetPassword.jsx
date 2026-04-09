@@ -6,39 +6,39 @@ import axios from "axios";
 import Image9 from "../assets/circle_up.png";
 import ImageShade from "../assets/login_shade.png";
 import AuthPageRightPart from "../Components/AuthPageRightPart";
-import { baseURL }  from "../Common/SummaryApi";
+import { baseURL } from "../Common/SummaryApi";
 import SummaryApi from "../Common/SummaryApi";
 
 function ResetPassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  
-  const [isValidating, setIsValidating] = useState(true); 
-  const [isTokenValid, setIsTokenValid] = useState(false); 
-  
+
+  const [isValidating, setIsValidating] = useState(true);
+  const [isTokenValid, setIsTokenValid] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false); 
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const navigate = useNavigate();
-  const { token } = useParams(); 
+  const { token } = useParams();
 
   useEffect(() => {
     const verifyTokenOnLoad = async () => {
       try {
-       
-        const response =await axios({
-            method: SummaryApi.reset_password.method,
-            url :`${baseURL}${SummaryApi.reset_password.url}${token}`,
+
+        const response = await axios({
+          method: "get", 
+          url: `${baseURL}${SummaryApi.reset_password.url}${token}`,
         })
         if (response.data.success) {
-          setIsTokenValid(true); 
+          setIsTokenValid(true);
         }
       } catch (error) {
-        setIsTokenValid(false); 
+        setIsTokenValid(false);
         toast.error(error.response?.data?.message || "Invalid or expired link");
       } finally {
-        setIsValidating(false); 
+        setIsValidating(false);
       }
     };
 
@@ -47,10 +47,10 @@ function ResetPassword() {
     }
   }, [token]);
 
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (password !== confirmPassword) {
       toast.error("Passwords do not match!");
       return;
@@ -62,20 +62,18 @@ function ResetPassword() {
 
     setIsSubmitting(true);
     try {
-     /*  const response = await axios.post(`http://localhost:5000/api/auth/reset-password/${token}`, {
-        password: password
-      }); */
+ 
       const response = await axios({
-              method: SummaryApi.reset_password.method,
-              url: `${baseURL}${SummaryApi.reset_password.url}${token}`,
-              data : {
-                password :password 
-              }
-            });
+        method: SummaryApi.reset_password.method,
+        url: `${baseURL}${SummaryApi.reset_password.url}${token}`,
+        data: {
+          password: password
+        }
+      });
 
       if (response.data.success) {
         toast.success("Password reset successfully!");
-        setIsSuccess(true); 
+        setIsSuccess(true);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to reset password.");
@@ -91,7 +89,7 @@ function ResetPassword() {
       </div>
 
       <div className="relative h-screen w-[100%] lg:w-[38%] xl:w-[42%] bg-white shadow dark:bg-[#131313] flex flex-col items-center">
-        
+
         <Link to={"/"} className="flex items-center justify-center mt-[6vh] xl:mt-[8vh]">
           <svg className="mb-[0.4vh]" width="20" height="20" viewBox="0 0 27 26" fill="none">
             <path d="M18.05 8.79119C18.05 11.3414 15.5629 13.4088 13.0126 13.4088C10.4624 13.4088 7.9752 11.3414 7.9752 8.79119C7.9752 6.24094 5.42505 3.33398 7.9753 3.33398C10.5256 3.33398 18.05 6.24094 18.05 8.79119Z" stroke="#4D4EF2" strokeWidth="1.67914" />
@@ -128,13 +126,13 @@ function ResetPassword() {
         ) : !isSuccess ? (
           /* 3. Form State (Link is good, enter new password) */
           <div className="w-full flex flex-col items-center mt-[6vh]">
-             <h1 className="font-robotoflex text-black text-[22px] dark:text-[#F1F1F1] font-semibold lg:text-[1.8rem] tracking-tight">
+            <h1 className="font-robotoflex text-black text-[22px] dark:text-[#F1F1F1] font-semibold lg:text-[1.8rem] tracking-tight">
               Create a new password
             </h1>
             <div className="text-center text-[#828F9B] dark:text-[#D6D6D6] text-[14px] lg:text-[15px] font-normal font-['Poppins'] mt-[2vh] mb-[4vh] w-[80%] lg:w-[65%]">
               Your identity is verified. Set a new password that's secure and easy to remember.
             </div>
-            
+
             <form onSubmit={handleSubmit} className="flex flex-col items-center w-full mt-4">
               <div className="relative w-[80vw] lg:w-[24.5vw] mb-[2vh]">
                 <label className="text-[#1e1e1e] dark:text-[#D6D6D6] text-[13.5px] lg:text-[15px] font-medium block mb-1">
@@ -183,7 +181,7 @@ function ResetPassword() {
         ) : (
           /* 4. Success State */
           <div className="w-full flex flex-col items-center mt-[10vh]">
-             <h1 className="font-robotoflex text-black text-[22px] dark:text-[#F1F1F1] font-semibold lg:text-[1.8rem] tracking-tight">
+            <h1 className="font-robotoflex text-black text-[22px] dark:text-[#F1F1F1] font-semibold lg:text-[1.8rem] tracking-tight">
               Password updated
             </h1>
             <div className="text-center text-[#828F9B] dark:text-[#D6D6D6] text-[14px] lg:text-[15px] font-normal font-['Poppins'] mt-[2vh] mb-[4vh] w-[80%] lg:w-[65%]">

@@ -33,8 +33,9 @@ const SummaryApi = {
     },
     reset_password: {
         url: '/api/auth/reset-password/',
-        method: 'get'
-    }
+        method: 'post'
+    },
+
 };
 
 export default SummaryApi;
