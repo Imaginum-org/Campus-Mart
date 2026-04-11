@@ -3,7 +3,7 @@
 import mongoose from "mongoose";
 
 if (!process.env.MONGO_URL) {
-  throw new Error("❌ MONGO_URL not found in .env file");
+  throw new Error("MONGO_URL not found in .env file");
 }
 
 export const connectDB = async () => {
@@ -14,25 +14,25 @@ export const connectDB = async () => {
       family: 4, // IPv4
     });
 
-    console.log("✅ MongoDB connected");
+    console.log("MongoDB connected");
   } catch (err) {
-    console.error("❌ MongoDB connection failed:", err.message);
-    // Let PM2 / Docker / K8s restart the app
+    console.error("MongoDB connection failed:", err.message);
+    // PM2 / Docker / K8s will restart the app
     process.exit(1);
   }
 };
 
 // Connection Events
 mongoose.connection.on("error", (err) => {
-  console.error("❌ MongoDB runtime error:", err);
+  console.error("MongoDB runtime error:", err);
 });
 mongoose.connection.on("disconnected", () => {
-  console.warn("❌ MongoDB disconnected");
+  console.warn("MongoDB disconnected");
 });
 
 // Avoiding any Data leaks after disconnecting the DB
 process.on("SIGINT", async () => {
   await mongoose.connection.close();
-  console.log("✅ MongoDB connection closed");
+  console.log("MongoDB connection closed");
   process.exit(0);
 });

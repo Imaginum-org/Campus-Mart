@@ -3,14 +3,14 @@ dotenv.config();
 import { Resend } from "resend";
 
 if (!process.env.RESEND_API_KEY) {
-  console.log("🔴 Resend api key is not available");
+  throw new Error("RESEND_API_KEY missing");
 }
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendEmail = async ({ sendTo, subject, html }) => {
   if (!sendTo || !subject || !html) {
-    throw new Error("🔴 Missing email parameters ");
+    throw new Error("Missing email parameters ");
   }
   try {
     const { data, error } = await resend.emails.send({
@@ -21,11 +21,12 @@ const sendEmail = async ({ sendTo, subject, html }) => {
     });
 
     if (error) {
-      return console.error({ error });
+      throw new Error(error.message || "Email sending failed");
     }
     return data;
   } catch (error) {
-    console.log(error);
+    console.error("Email Error:", error.message);
+    throw error;
   }
 };
 export default sendEmail;
