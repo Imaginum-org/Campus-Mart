@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import slugify from "slugify";
+
 import {
   PRODUCT_STATUS,
   PRODUCT_CATEGORIES,

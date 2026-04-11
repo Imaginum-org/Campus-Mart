@@ -4,25 +4,73 @@ import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import helmet from "helmet";
 
+import xss from "xss";
+
 import authRouter from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
+import productRouter from "./routes/product.routes.js";
 
-// import errorMiddleware from "./middlewares/error.middleware.js"
+// import errorMiddleware from "./middlewares/error.middleware.js";
 
 const app = express();
 
 // Protection against XSS attacks, clickjacking, malicious headers
-app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  }),
+);
+
+// Prevent NoSQL injection
+app.use((req, res, next) => {
+  const sanitize = (obj) => {
+    if (!obj) return;
+
+    for (let key in obj) {
+      if (key.includes("$") || key.includes(".")) {
+        delete obj[key];
+      } else if (typeof obj[key] === "object") {
+        sanitize(obj[key]);
+      }
+    }
+  };
+
+  sanitize(req.body);
+  sanitize(req.params);
+
+  next();
+});
+
+// Prevent XSS attacks
+app.use((req, res, next) => {
+  if (req.body) {
+    for (const key in req.body) {
+      if (typeof req.body[key] === "string") {
+        req.body[key] = xss(req.body[key]);
+      }
+    }
+  }
+
+  if (req.params) {
+    for (const key in req.params) {
+      if (typeof req.params[key] === "string") {
+        req.params[key] = xss(req.params[key]);
+      }
+    }
+  }
+
+  next();
+});
 
 app.use(
   cors({
     origin: process.env.FRONTEND_URL, // only frontend allowed
-    credentials: true,                // allows cookies
+    credentials: true, // allows cookies
     methods: ["GET", "POST", "PUT", "DELETE"],
   }),
 );
 
-app.use(express.json({ limit: "10kb" }));        // To prevent large payload attacks
+app.use(express.json({ limit: "10kb" })); // To prevent large payload attacks
 app.use(express.urlencoded({ extended: true })); // Handles form data from frontend
 app.use(cookieParser());
 
@@ -42,6 +90,7 @@ app.get("/health", (req, res) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
+app.use("/api/product", productRouter);
 
 // If no route matches
 app.use((req, res) => {
@@ -51,6 +100,7 @@ app.use((req, res) => {
   });
 });
 
+// Global error handler
 // app.use(errorMiddleware);
 
 export default app;

@@ -1,6 +1,6 @@
 <div align="center">
 
-# Campus Mart
+# Campus Mart 🛒
 
 ### Campus marketplace · full-stack monorepo
 
