@@ -28,6 +28,7 @@ import ProtectedRoute from "./Components/ProtectedRoute.jsx";
 import CheckEmail from "./Pages/CheckEmail";
 import ForgotPassword from "./Pages/ForgotPassword";
 import ResetPassword from "./Pages/ResetPassword.jsx";
+import VerifyEmail from "./Pages/VerifyEmail.jsx";
 
 function App() {
 
@@ -41,8 +42,9 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={
             <ResetPassword/>
-  
+
           } />
+        <Route path="/verify-email" element={<VerifyEmail />} />
 
         <Route path="/profile" element={
           <ProtectedRoute>

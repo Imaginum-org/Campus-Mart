@@ -9,6 +9,7 @@ import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import verifyEmailTempplate from "../utils/templates/verifyEmailTemplate.js";
 import { generateOtp } from "../utils/generateOtp.js";
 import forgotPaswordTemplate from "../utils/templates/forgotPaswordTemplate.js";
+import { USER_STATUS } from "../config/constants.js";
 
 export const registerUserController = async (req, res) => {
   try {
@@ -40,6 +41,8 @@ export const registerUserController = async (req, res) => {
     let statusCode = 201;
 
     if (existingUser) {
+      const newHashedPassword = await bcrypt.hash(password, 10);
+      
       await userModel.findByIdAndUpdate(existingUser._id, {
         verifyTokenEmail: verifyToken,
         password: newHashedPassword,
@@ -108,23 +111,15 @@ export const loginController = async (req, res) => {
       });
     }
 
-    if (!user.is_email_verified) {
-      return res.status(403).json({
-        message: "Please verify your email address before logging in.",
-        success: false,
-        error: true,
-      });
-    }
-    if (user.status && user.status !== "Active") {
-      return res.status(403).json({
-        message: "Account is inactive or suspended.",
-        success: false,
-        error: true,
-      });
-    }
-
-    const checkpassword = await bcrypt.compare(password, user.password);
-    if (!checkpassword) {
+       if (!user.is_email_verified) {
+            return res.status(403).json({ 
+                message: "Please verify your email address before logging in.", 
+                success: false, 
+                error: true,
+                requiresVerification: true 
+            });
+        }
+        if (user.status && user.status !== USER_STATUS.ACTIVE) {
       return res.status(400).json({
         message: "Invalid email or password",
         success: false,
@@ -206,8 +201,8 @@ export const verifyEmailController = async (req, res) => {
   } catch (err) {
     return res.status(500).json({
       message: err.message || err,
-      success: true,
-      error: false,
+      success: false,
+      error: true,
     });
   }
 };
@@ -287,60 +282,6 @@ export const forgotPasswordController = async (req, res) => {
   }
 };
 
-/* export const verifyforgotPasswordOtpController = async (req, res) => {
-    try{
-        const { email,otp } = req.body ;
-        if(!email || !otp ){
-            return res.status(400).json({
-                message : "Please Provide Email and Otp ",
-                success : false ,
-                error : true 
-            })
-        } 
-
-        const  user = await userModel.findOne({email}).select("+forgot_password_otp");
-
-        if (!user) {
-            return res.status(404).json({
-                message: "User not found",
-                success: false,
-                error: true 
-            });
-        }
-
-        const currentTime = Date.now();
-        if(user.forgot_password_expiry < currentTime){
-            return res.status(400).json({
-                message : "Otp is expired",
-                success : false,
-                error : true 
-            })
-        }
-
-        if(otp!==user.forgot_password_otp){
-            return res.status(400).json({
-                message : "Invalid Otp ",
-                success : false ,
-                error :true 
-            })
-        }
-
-        return res.status(200).json({
-            message : "Otp Verified",
-            success :true ,
-            error : false 
-        })
-    }
-    catch(error){
-        return res.status(500).json({
-            message : error.message || error ,
-            success : false ,
-            error : true
-        })
-    }
-     
-} */
-
 export const resetPasswordController = async (req, res) => {
   try {
     const { token } = req.params;
@@ -390,6 +331,7 @@ export const resetPasswordController = async (req, res) => {
     });
   }
 };
+
 export const verifyResetTokenPreCheck = async (req, res) => {
   try {
     const { token } = req.params;
@@ -422,3 +364,37 @@ export const verifyResetTokenPreCheck = async (req, res) => {
     });
   }
 };
+
+export const resendVerificationController = async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        const user = await userModel.findOne({ email });
+        
+        if (!user) {
+            return res.status(404).json({ message: "User not found.", success: false, error: true });
+        }
+        
+        if (user.is_email_verified) {
+            return res.status(400).json({ message: "Email is already verified. Please log in.", success: false, error: true });
+        }
+
+        // Generate a new token and update the user
+        const verifyToken = crypto.randomBytes(32).toString("hex");
+        await userModel.findByIdAndUpdate(user._id, { verifyTokenEmail: verifyToken });
+
+        // Send the email
+        const verifyEmailUrl = `${process.env.FRONTEND_URL}/verify-email?code=${verifyToken}`;
+        await sendEmail({
+            sendTo: email,
+            subject: "Verify your email for Campus Mart",
+            html: verifyEmailTempplate({ name: user.name, url: verifyEmailUrl })
+        });
+
+        return res.status(200).json({ message: "Verification email resent!", success: true, error: false });
+
+    } catch (error) {
+        return res.status(500).json({ message: error.message || error, success: false, error: true });
+    }
+};
+

@@ -35,6 +35,14 @@ const SummaryApi = {
         url: '/api/auth/reset-password/',
         method: 'post'
     },
+    resend_verification: {
+        url: '/api/auth/resend-verification',
+        method: 'post'
+    },
+    verify_email: {
+        url: '/api/auth/verify-email',
+        method: 'post'
+    }
 
 };
 

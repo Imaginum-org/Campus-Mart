@@ -33,7 +33,7 @@ function Signup() {
 
       if (response.data.success) {
         toast.success(response.data.message || "Account created successfully!");
-        navigate("/checkEmail");
+        navigate("/checkEmail",{ state: { email: email } });
       }
     } catch (error) {
       console.error("Signup Error:", error);   

@@ -1,23 +1,56 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import axios from "axios";
+import SummaryApi, { baseURL } from "../Common/SummaryApi"; 
 import Image9 from "../assets/circle_up.png";
 import ImageShade from "../assets/login_shade.png";
 import checkemailicon from "../assets/checkemailicon.png";
 import { ArrowLeft, OctagonAlert } from 'lucide-react';
 import AuthPageRightPart from "../Components/AuthPageRightPart";
+
 function CheckEmail() {
+    const location = useLocation();
+    const navigate = useNavigate();
+    
+    // Grab the email passed from the signup page. 
+    // If someone visits this page directly without signing up, it falls back to empty.
+    const email = location.state?.email || ""; 
+    
+    const [isResending, setIsResending] = useState(false);
+
+    const handleResend = async () => {
+        if (!email) {
+            toast.error("No email found. Please try registering again.");
+            return navigate("/signup");
+        }
+
+        setIsResending(true);
+        try {
+            const response = await axios({
+                method: SummaryApi.resend_verification.method,
+                url: `${baseURL}${SummaryApi.resend_verification.url}`,
+                data: { email: email }
+            });
+
+            if (response.data.success) {
+                toast.success(response.data.message || "Verification email resent!");
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to resend verification email.");
+        } finally {
+            setIsResending(false);
+        }
+    };
+
     return (
         <div className="flex overflow-hidden select-none relative">
-            {/* Top left image */}
             <div className="absolute -top-36 -left-52 z-10 opacity-70 dark:opacity-30 transition-opacity duration-300">
                 <img src={ImageShade} className="w-[35vw] h-[52vh]" alt="shade" />
             </div>
 
             {/* LEFT SECTION */}
             <div className="relative h-screen w-[100%] lg:w-[38%] xl:w-[42%] bg-white shadow dark:bg-[#131313] transition-colors duration-300">
-
-                {/* right side main content  */}
                 <div className="flex flex-col items-center justify-center min-h-screen px-4 py-12 bg-white dark:bg-[#131313] sm:px-6 lg:px-8 transition-colors duration-300">
                     <div className="w-full max-w-sm space-y-8 z-20">
 
@@ -35,21 +68,31 @@ function CheckEmail() {
                             </p>
                             <div className="px-4 py-2 mt-6 bg-slate-100 dark:bg-[#1e1e1e] border border-slate-300/30 dark:border-zinc-800 rounded-xl transition-colors duration-300">
                                 <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 font-['Inter'] transition-colors duration-300">
-                                    student@university.edu
+                                    {/* Dynamically display the actual email */}
+                                    {email || "Unknown Email"}
                                 </span>
                             </div>
                         </div>
 
                         {/* Action Section */}
                         <div className="space-y-5">
-                            <button className="w-full py-3 text-sm font-bold text-white transition-colors bg-indigo-600 rounded-xl hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 sm:text-sm lg:text-sm font-['Inter'] shadow-sm">
+                            <button 
+                                onClick={() => window.location.reload()}
+                                className="w-full py-3 text-sm font-bold text-white transition-colors bg-indigo-600 rounded-xl hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 shadow-sm"
+                            >
                                 Reload / I’ve Verified
                             </button>
 
                             <div className="flex items-center justify-center gap-1 text-[0.80rem] font-['Inter']">
                                 <span className="text-gray-700 dark:text-gray-400 transition-colors duration-300">Didn’t receive the email?</span>
-                                <button className="font-extrabold text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors">
-                                    Resend Email
+                                
+                                {/* Dynamic Resend Button */}
+                                <button 
+                                    onClick={handleResend}
+                                    disabled={isResending}
+                                    className="font-extrabold text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors disabled:opacity-50"
+                                >
+                                    {isResending ? "Sending..." : "Resend Email"}
                                 </button>
                             </div>
 
@@ -67,7 +110,7 @@ function CheckEmail() {
 
                         {/* Footer Section */}
                         <div className="absolute bottom-6 w-full left-0 flex items-center justify-center pt-2">
-                            <Link to={"/login"} className="flex items-center gap-1 text-xs font-medium text-gray-700 dark:text-gray-400 transition-colors hover:text-gray-900 dark:hover:text-gray-200 font-['Inter']">
+                            <Link to={"/signup"} className="flex items-center gap-1 text-xs font-medium text-gray-700 dark:text-gray-400 transition-colors hover:text-gray-900 dark:hover:text-gray-200 font-['Inter']">
                                 <ArrowLeft size={15} /> Back to registration
                             </Link>
                         </div>

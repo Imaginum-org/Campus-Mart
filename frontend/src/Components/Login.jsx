@@ -22,26 +22,32 @@ function Login() {
     setIsSubmitting(true);
 
     try {
-
       const response = await axios({
         method: SummaryApi.login.method,
         url: `${baseURL}${SummaryApi.login.url}`,
         data: {
           email: email,
           password: password,
-          rememberMe: rememberMe,
+          rememberMe: rememberMe, 
         },
         withCredentials: true,
       });
 
       if (response.data.success) {
         toast.success(response.data.message || "Logged in successfully!");
-
-        localStorage.setItem("isAuthenticated", "true");
-
-        navigate("/");
+        localStorage.setItem("isAuthenticated", "true"); 
+        navigate("/"); 
       }
     } catch (error) {
+       if (error.response?.data?.requiresVerification) {
+        toast.error("Please verify your email first. Redirecting...");
+        
+         setTimeout(() => {
+          navigate("/checkEmail", { state: { email: email } });
+        }, 1500);
+        
+        return; 
+      }
       const errorMessage = error.response?.data?.message || "An error occurred connecting to the server.";
       toast.error(errorMessage);
     } finally {
