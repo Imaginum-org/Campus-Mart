@@ -113,6 +113,15 @@ const userSchema = new Schema(
       type: Date,
       default: null,
     },
+    reset_password_token: {
+      type: String,
+      select: false,
+      default: "",
+    },
+    reset_password_expiry: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
