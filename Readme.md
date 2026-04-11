@@ -134,9 +134,13 @@ Campus-Mart/
 │   │   ├── utils/           # Utilities (Cloudinary, JWT, etc.)
 │   │   ├── jobs/            # Scheduled tasks
 │   │   ├── seeds/           # Database seeds
-│   │   ├── app.js           # Express app
-│   │   └── server.js        # Server entry
+│   │   └── app.js           # Express app
+│   │      
+│   └── package-lock.json
 │   └── package.json
+│   └── .env
+│   └── .env.sample
+│   └── server.js            # Server entry
 │
 └── README.md
 ```

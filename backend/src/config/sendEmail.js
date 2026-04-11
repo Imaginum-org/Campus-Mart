@@ -1,12 +1,13 @@
-import { Resend } from "resend";
 import dotenv from "dotenv";
 dotenv.config();
+import { Resend } from "resend";
 
 if (!process.env.RESEND_API_KEY) {
   console.log("🔴 Resend api key is not available");
 }
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
 const sendEmail = async ({ sendTo, subject, html }) => {
   if (!sendTo || !subject || !html) {
     throw new Error("🔴 Missing email parameters ");

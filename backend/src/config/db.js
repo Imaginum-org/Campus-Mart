@@ -1,6 +1,5 @@
 // MongoDB connection
 // right now basic set up - will update when going to production and add more options for connection like retryWrites, useNewUrlParser, useUnifiedTopology etc
-
 import mongoose from "mongoose";
 
 if (!process.env.MONGO_URL) {
