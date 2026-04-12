@@ -66,4 +66,12 @@ export const DEAL_STATUS = Object.freeze({
   CANCELLED: "cancelled",
 });
 
+export const REPORT_REASONS = Object.freeze({
+  SPAM: "spam",
+  FAKE: "fake",
+  INAPPROPRIATE: "inappropriate",
+  SCAM: "scam",
+  OTHER: "other",
+});
+
 export const enumToArray = (enumObj) => Object.values(enumObj);

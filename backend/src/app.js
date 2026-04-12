@@ -9,6 +9,7 @@ import xss from "xss";
 import authRouter from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
 import productRouter from "./routes/product.routes.js";
+import reportRouter from "./routes/report.routes.js";
 
 // import errorMiddleware from "./middlewares/error.middleware.js";
 
@@ -88,9 +89,11 @@ app.get("/health", (req, res) => {
   });
 });
 
+// Routes
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
+app.use("/api/report", reportRouter);
 
 // If no route matches
 app.use((req, res) => {
