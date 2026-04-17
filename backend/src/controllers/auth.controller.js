@@ -18,7 +18,7 @@ const oauth2Client = new OAuth2Client(
   process.env.GOOGLE_REDIRECT_URI,
 );
 
-const setAuthCookies = (res, accessToken, refreshToken, rememberMe = false) => {
+const setAuthCookies = (res, accessToken, refreshToken) => {
   const isProduction = process.env.NODE_ENV === "production";
 
   const baseCookieOptions = {
@@ -34,7 +34,7 @@ const setAuthCookies = (res, accessToken, refreshToken, rememberMe = false) => {
 
   const refreshTokenOptions = {
     ...baseCookieOptions,
-    maxAge: rememberMe ? 30 * 24 * 60 * 60 * 1000 : 1 * 24 * 60 * 60 * 1000,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   };
 
   res.cookie("accessToken", accessToken, accessTokenOptions);
@@ -122,7 +122,7 @@ export const registerUserController = async (req, res) => {
 
 export const loginController = async (req, res) => {
   try {
-    const { email, password, rememberMe } = req.body;
+    const { email, password } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({
@@ -160,7 +160,7 @@ export const loginController = async (req, res) => {
     const accesstoken = await generatedAccessToken(user._id);
     const refreshtoken = await generatedRefreshToken(user._id);
 
-    setAuthCookies(res, accesstoken, refreshtoken, rememberMe);
+    setAuthCookies(res, accesstoken, refreshtoken);
 
     return res.status(200).json({
       message: "Login successfully",
@@ -332,6 +332,49 @@ export const logoutUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error during logout",
+      error: true,
+    });
+  }
+};
+
+export const refreshAccessTokenController = async (req, res) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+    
+    if (!refreshToken) {
+      return res.status(401).json({
+        message: "Refresh token required",
+        success: false,
+        error: true,
+      });
+    }
+
+    const decode = jwt.verify(refreshToken, process.env.SECRET_KEY_REFRESH_TOKEN);
+    const user = await userModel.findById(decode.id);
+
+    if (!user || user.refresh_token !== refreshToken) {
+      return res.status(401).json({
+        message: "Invalid or expired refresh token",
+        success: false,
+        error: true,
+      });
+    }
+
+    const newAccessToken = await generatedAccessToken(user._id);
+    const newRefreshToken = await generatedRefreshToken(user._id);
+
+    setAuthCookies(res, newAccessToken, newRefreshToken);
+
+    return res.status(200).json({
+      message: "Token refreshed successfully",
+      success: true,
+      error: false,
+      data: { accessToken: newAccessToken, refreshToken: newRefreshToken },
+    });
+  } catch (err) {
+    return res.status(401).json({
+      message: "Invalid refresh token",
+      success: false,
       error: true,
     });
   }

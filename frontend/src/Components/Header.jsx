@@ -6,7 +6,7 @@ import { IoIosSunny, IoMdMoon } from "react-icons/io";
 import { MdShoppingCart } from "react-icons/md";
 import { FiMessageSquare } from "react-icons/fi";
 import LoggedImage from "/LoggedImage.png";
-import DefaultAvatar from "/default-avatar.webp";
+import AvatarComponent from "./AvatarComponent";
 import { IoIosAddCircleOutline } from "react-icons/io";
 import { LuUserRound } from "react-icons/lu";
 import { BsBoxSeam } from "react-icons/bs";
@@ -16,6 +16,7 @@ import { MdOutlineLogout } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 import axios  from "axios";
 import { IoChevronBackOutline } from "react-icons/io5";
+import { toast } from "react-hot-toast";
 import  SummaryApi  from "../Common/SummaryApi";
 import { baseURL } from "../Common/SummaryApi";
 
@@ -29,6 +30,7 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [fade, setFade] = useState(true);
+  const [loading, setLoading] = useState(true);
   const menuRef = useRef(null);
   const navigate = useNavigate();
   
@@ -120,8 +122,15 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
   }, []);
 
  useEffect(() => {
+    setLoading(true);
     const fetchUserProfile = async () => {
       try{
+        // Only fetch if user is logged in
+        const authStatus = localStorage.getItem("isAuthenticated");
+        if (!authStatus || authStatus !== "true") {
+          setLoading(false);
+          return;
+        }
 
         const response =await axios({
           method : SummaryApi.userProfile.method,
@@ -130,22 +139,20 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
         });
         if(response.data.success){
           setUserDetails(response.data.user);
-          
+          setIsLoggedIn(true);
         }
       }
       catch(error){
        if (error.response?.status === 401) {
           toast.error("Session expired. Please log in again.");
           localStorage.removeItem("isAuthenticated"); 
-          navigate("/login"); 
-        } else {
-          toast.error("Failed to load profile data");
+          setIsLoggedIn(false);
+          setUserDetails(null);
         }
       }
       finally {
         setLoading(false); 
       }
-
     }
     fetchUserProfile();
   },[navigate])
@@ -171,7 +178,7 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
     }
   };
 
-  const profileSrc = userDetails?.avatar || DefaultAvatar;
+  // Removed profileSrc - now using AvatarComponent directly
 
   return (
     <>
@@ -211,13 +218,11 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
           </button>
 
           <button onClick={handleMenu}>
-            <img
-              src={profileSrc}
-              className="w-8 h-8 rounded-full object-cover border border-gray-300"
-              alt="Profile"
-              onError={(e) => {
-                e.target.src = DefaultAvatar;
-              }}
+            <AvatarComponent
+              name={userDetails?.name}
+              imageUrl={userDetails?.avatar}
+              size="small"
+              className="border border-gray-300"
             />
           </button>
         </div>
@@ -235,20 +240,18 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
             className="sm:hidden fixed right-4 top-16 z-50 bg-white dark:bg-[#131313] rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] border border-gray-200 dark:border-gray-700 w-[65vw] overflow-hidden font-outfit"
           >
             <div className="flex items-center gap-3 px-4 py-2 border-b border-gray-100 dark:border-[#333] bg-gray-50 dark:bg-[#1A1D20]">
-              <img
-                src={profileSrc}
-                className="w-12 h-12 rounded-full border border-white shadow-sm"
-                alt="Profile"
-                onError={(e) => {
-                  e.target.src = DefaultAvatar;
-                }}
+              <AvatarComponent
+                name={userDetails?.name}
+                imageUrl={userDetails?.avatar}
+                size="medium"
+                className="border border-white shadow-sm"
               />
               <div className="overflow-hidden">
                 <p className="font-semibold text-base dark:text-white truncate">
-                  {userDetails.name || "Guest User"}
+                  {userDetails?.name || "Guest User"}
                 </p>
                 <p className="text-xs text-gray-500 truncate">
-                  {userDetails.email || "Welcome to Campus Mart"}
+                  {userDetails?.email || "Welcome to Campus Mart"}
                 </p>
               </div>
             </div>
@@ -337,13 +340,10 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
                   to={"/"}
                   className="flex items-center gap-4 px-4 pt-4 pb-3 hover:bg-gray-100 transition-all duration-200 rounded-t-xl"
                 >
-                  <img
-                    src={profileSrc}
-                    className="w-12 h-12 rounded-full"
-                    alt="user"
-                    onError={(e) => {
-                      e.target.src = DefaultAvatar;
-                    }}
+                  <AvatarComponent
+                    name={userDetails?.name}
+                    imageUrl={userDetails?.avatar}
+                    size="medium"
                   />
                   <div>
                     <h1 className="text-black font-medium text-sm sm:text-base">
@@ -486,19 +486,16 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
               </Link>
             </div>
 
-            <div
+            <button
               onClick={handleMenu}
-              className="rounded-full object-contain size-8 lg:size-9 xl:size-10 cursor-pointer transition-all duration-200 hover:scale-105 overflow-hidden"
+              className="cursor-pointer transition-all duration-200 hover:scale-105"
             >
-              <img
-                src={profileSrc}
-                alt="user"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.src = DefaultAvatar;
-                }}
+              <AvatarComponent
+                name={userDetails?.name}
+                imageUrl={userDetails?.avatar}
+                size="medium"
               />
-            </div>
+            </button>
           </div>
         </nav>
       ) : (

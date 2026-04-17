@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { X, MapPin } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
+import { toast } from "react-hot-toast";
+import SummaryApi, { baseURL } from "../Common/SummaryApi";
 
-const AddressModal = ({ isOpen, onClose, onSave, initialData }) => {
+const AddressModal = ({ isOpen, onClose, onSave, initialData, addressId, mode = "create" }) => {
   const [formData, setFormData] = useState({
     line1: "",
     line2: "",
     state: "",
     city: "",
     pincode: "",
+    isDefault: false,
   });
 
   const [loadingLocation, setLoadingLocation] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -33,15 +38,62 @@ const AddressModal = ({ isOpen, onClose, onSave, initialData }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = () => {
-    onSave(formData);
-    onClose();
+  const handleSubmit = async () => {
+    // If onSave prop is provided, use it (for custom handling)
+    if (onSave) {
+      setIsSubmitting(true);
+      try {
+        await onSave(formData);
+        onClose();
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    // Otherwise, handle API call internally
+    setIsSubmitting(true);
+
+    try {
+      let response;
+
+      if (mode === "create") {
+        response = await axios({
+          method: SummaryApi.createAddress.method,
+          url: `${baseURL}${SummaryApi.createAddress.url}`,
+          data: formData,
+          withCredentials: true,
+        });
+      } else if (mode === "update" && addressId) {
+        response = await axios({
+          method: SummaryApi.updateAddress.method,
+          url: `${baseURL}${SummaryApi.updateAddress.url}${addressId}`,
+          data: formData,
+          withCredentials: true,
+        });
+      }
+
+      if (response.data.success) {
+        toast.success(response.data.message || `Address ${mode === "create" ? "created" : "updated"} successfully!`);
+        onClose();
+        // Optionally, you can call a callback to refresh the address list
+        if (window.location.reload) {
+          window.location.reload(); // Simple refresh, you might want to use a better approach
+        }
+      }
+    } catch (error) {
+      console.error("Error saving address:", error);
+      const errorMessage = error.response?.data?.message || "Failed to save address";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Function to get current location
   const handleCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      alert("Geolocation is not supported by your browser.");
       return;
     }
 
@@ -49,28 +101,44 @@ const AddressModal = ({ isOpen, onClose, onSave, initialData }) => {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
-
           const res = await fetch(
             `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`
           );
           const data = await res.json();
 
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
             city: data.city || data.locality || "",
             state: data.principalSubdivision || "",
             pincode: data.postcode || "",
-            line1: `${data.locality || ''}, ${data.principalSubdivision || ''}`
+            line1: `${data.locality || data.city || ""}${data.principalSubdivision ? ", " + data.principalSubdivision : ""}`.trim(),
           }));
         } catch (error) {
-          console.error("Error fetching address", error);
+          console.error("Error fetching reverse geocode data:", error);
+          alert("Unable to retrieve your address from location data.");
         } finally {
           setLoadingLocation(false);
         }
       },
       (error) => {
+        console.error("Geolocation error:", error);
         setLoadingLocation(false);
-        alert("Unable to retrieve your location");
+
+        let message = "Unable to retrieve your location.";
+        if (error.code === 1) {
+          message = "Location permission denied. Please allow location access in your browser.";
+        } else if (error.code === 2) {
+          message = "Location unavailable. Try again in a different location.";
+        } else if (error.code === 3) {
+          message = "Location request timed out. Please try again.";
+        }
+
+        alert(message);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 60000,
       }
     );
   };
@@ -88,7 +156,7 @@ const AddressModal = ({ isOpen, onClose, onSave, initialData }) => {
         >
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg lg:text-lg font-semibold text-[#2d3339] dark:text-white font-poppins">
-              Add Address
+              {mode === "create" ? "Add Address" : "Edit Address"}
             </h2>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
               <X size={24} />
@@ -150,6 +218,20 @@ const AddressModal = ({ isOpen, onClose, onSave, initialData }) => {
               placeholder="Pincode"
               className="w-full p-3 border border-gray-300 rounded-[10px] focus:outline-none focus:border-blue-500 dark:bg-[#2D3339] dark:border-gray-600 dark:text-white text-[12px] lg:text-[13px]"
             />
+
+            <div className="flex items-center gap-3 p-3 bg-[#F0F2FF] dark:bg-[#2D3339] rounded-[10px]">
+              <input
+                type="checkbox"
+                id="isDefault"
+                name="isDefault"
+                checked={formData.isDefault}
+                onChange={(e) => setFormData((prev) => ({ ...prev, isDefault: e.target.checked }))}
+                className="w-4 h-4 cursor-pointer accent-blue-500"
+              />
+              <label htmlFor="isDefault" className="text-sm lg:text-[13px] text-gray-700 dark:text-gray-300 cursor-pointer font-medium">
+                Set as default address
+              </label>
+            </div>
           </div>
 
           <div className="flex gap-4 mt-8">
@@ -161,9 +243,10 @@ const AddressModal = ({ isOpen, onClose, onSave, initialData }) => {
             </button>
             <button
               onClick={handleSubmit}
-              className="flex-1 py-3 bg-[#4d4ef2] text-sm text-white rounded-[10px] font-medium hover:bg-[#3b3be0] transition-colors shadow-lg shadow-blue-500/30"
+              disabled={isSubmitting}
+              className="flex-1 py-3 bg-[#4d4ef2] text-sm text-white rounded-[10px] font-medium hover:bg-[#3b3be0] transition-colors shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save
+              {isSubmitting ? "Saving..." : "Save"}
             </button>
           </div>
         </motion.div>

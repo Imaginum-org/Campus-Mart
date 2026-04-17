@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import Image1 from "../assets/imageprofile.png";
+import AvatarComponent from "./AvatarComponent";
 import { useEffect, useState } from "react";
 
 
@@ -103,13 +103,11 @@ function Profile_left_part() {
                   <div className="absolute right-3 top-8 text-[#4F4F4F]">
                     <IoIosArrowForward size={18} />
                   </div>
-                  <img
-                    className="rounded-full w-[47px] h-[47px] lg:w-[55px] lg:h-[55px] md:mr-[1vw] mr-[2.5vw] object-cover"
-                    src={userDetails?.avatar || Image1}
-                    alt="Profile"
-                    onError={(e) => {
-                      e.target.src = Image1;
-                    }}
+                  <AvatarComponent
+                    name={userDetails?.name}
+                    imageUrl={userDetails?.avatar}
+                    size="medium"
+                    className="md:mr-[1vw] mr-[2.5vw]"
                   />
                   <div className="flex flex-col ">
                     <div className=" text-black dark:text-white  text-[13px] md:text-[14px] lg:text-[16px] font-normal font-['Poppins']">
@@ -122,11 +120,7 @@ function Profile_left_part() {
                       {" "}
                     </div>
                   </div>
-                  {/*  <div data-svg-wrapper class="  hidden md:block absolute right-[1vw] top-[1vh] ">
-                                            <svg width="16" height="19" viewBox="0 0 16 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path fill-rule="evenodd" clip-rule="evenodd" d="M3.92094 1.94591C4.22114 1.64571 4.70785 1.64571 5.00805 1.94591L11.1577 8.09553C11.4579 8.39572 11.4579 8.88244 11.1577 9.18263L5.00805 15.3322C4.70785 15.6324 4.22114 15.6324 3.92094 15.3322C3.62075 15.0321 3.62075 14.5453 3.92094 14.2451L9.527 8.63908L3.92094 3.03302C3.62075 2.73282 3.62075 2.24611 3.92094 1.94591Z" fill="#4F4F4F" />
-                                            </svg>
-                                        </div> */}
+      
                 </div>
               </div>
             </div>

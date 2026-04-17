@@ -10,6 +10,7 @@ import authRouter from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
 import productRouter from "./routes/product.routes.js";
 import reportRouter from "./routes/report.routes.js";
+import addressRouter from "./routes/address.routes.js";
 
 // import errorMiddleware from "./middlewares/error.middleware.js";
 
@@ -67,7 +68,7 @@ app.use(
   cors({
     origin: process.env.FRONTEND_URL, // only frontend allowed
     credentials: true, // allows cookies
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   }),
 );
 
@@ -94,6 +95,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
 app.use("/api/report", reportRouter);
+app.use("/api/address", addressRouter);
 
 // If no route matches
 app.use((req, res) => {

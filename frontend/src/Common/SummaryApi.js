@@ -1,4 +1,3 @@
-import { LogOut } from "lucide-react";
 
 export const baseURL = "http://localhost:5000"; 
 
@@ -18,6 +17,10 @@ const SummaryApi = {
     userProfile:{
         url: '/api/user/userProfile',
         method: 'get'
+    },
+    updateProfile: {
+        url: '/api/user/updateProfile',
+        method: 'put'
     },
     deleteAccount: {
         url: '/api/user/deleteAccount',
@@ -42,6 +45,31 @@ const SummaryApi = {
     verify_email: {
         url: '/api/auth/verify-email',
         method: 'post'
+    },
+   
+    createAddress: {
+        url: '/api/address',
+        method: 'post'
+    },
+    getUserAddresses: {
+        url: '/api/address',
+        method: 'get'
+    },
+    getAddressById: {
+        url: '/api/address/',
+        method: 'get'
+    },
+    updateAddress: {
+        url: '/api/address/',
+        method: 'put'
+    },
+    deleteAddress: {
+        url: '/api/address/',
+        method: 'delete'
+    },
+    setDefaultAddress: {
+        url: '/api/address/',
+        method: 'patch'
     }
 
 };

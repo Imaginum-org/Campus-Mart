@@ -3,49 +3,51 @@ import { motion, AnimatePresence } from "framer-motion";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useState } from "react";
 import EditButton from "./editbutton";
+import axios from "axios";
+import SummaryApi, { baseURL } from "../Common/SummaryApi";
 
 import { toast } from "react-hot-toast";
 import { X } from "lucide-react";
 
 export default function SecuritySettings() {
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [resetEmail, setResetEmail] = useState("");
   const [message, setMessage] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [isSendingReset, setIsSendingReset] = useState(false);
 
-  const handleChangePassword = async (e) => {
+  const handleSendResetLink = async (e) => {
     e.preventDefault();
 
-    if (!oldPassword || !newPassword || !confirmPassword) {
-      setMessage("Please fill in all fields.");
-      toast.error("Please fill in all fields.");
+    if (!resetEmail) {
+      setMessage("Please enter your email to reset password.");
+      toast.error("Please enter your email to reset password.");
       return;
     }
 
-    if (newPassword !== confirmPassword) {
-      setMessage("New passwords do not match.");
-      toast.error("New passwords do not match.");
-      return;
-    }
-
-    const user = auth.currentUser;
-    const credential = EmailAuthProvider.credential(user.email, oldPassword);
-
+    setIsSendingReset(true);
     try {
-      await reauthenticateWithCredential(user, credential);
-      await updatePassword(user, newPassword);
+      const response = await axios({
+        method: SummaryApi.forgot_password.method,
+        url: `${baseURL}${SummaryApi.forgot_password.url}`,
+        data: { email: resetEmail },
+        withCredentials: true,
+      });
 
-      setMessage("Password updated successfully.");
-      toast.success("Password updated successfully.");
-      setIsEditing(false);
-
-      setOldPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      if (response.data.success) {
+        setMessage("Password reset link sent successfully. Check your email.");
+        toast.success("Password reset link sent successfully.");
+        setResetEmail("");
+        setIsEditing(false);
+      } else {
+        setMessage(response.data.message || "Unable to send reset link.");
+        toast.error(response.data.message || "Unable to send reset link.");
+      }
     } catch (error) {
-      setMessage(error.message);
-      toast.error(error.message);
+      const errorMessage = error.response?.data?.message || "Failed to send reset link.";
+      setMessage(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsSendingReset(false);
     }
   };
 
@@ -100,7 +102,7 @@ export default function SecuritySettings() {
           <Dialog.Content className="fixed left-[50%] top-[50%] z-[1000] w-[90vw] md:w-[450px] translate-x-[-50%] translate-y-[-50%] rounded-[20px] bg-white dark:bg-[#1A1D20] p-6 shadow-2xl focus:outline-none font-['Poppins'] data-[state=open]:animate-contentShow">
             <div className="flex justify-between items-center mb-6">
               <Dialog.Title className="text-xl font-semibold text-[#2d3339] dark:text-white">
-                Change Password
+                Reset Password
               </Dialog.Title>
               <Dialog.Close asChild>
                 <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
@@ -113,34 +115,14 @@ export default function SecuritySettings() {
               Enter your old password and set a new one.
             </Dialog.Description>
 
-            <form className="flex flex-col gap-4">
+            <form className="flex flex-col gap-4" onSubmit={handleSendResetLink}>
               <div>
                 <input
-                  type="password"
-                  placeholder="Old Password"
+                  type="email"
+                  placeholder="Your email address"
                   className="w-full p-3 border border-gray-300 rounded-[10px] focus:outline-none focus:border-blue-500 dark:bg-[#2D3339] dark:border-gray-600 dark:text-white text-sm"
-                  value={oldPassword}
-                  onChange={(e) => setOldPassword(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <input
-                  type="password"
-                  placeholder="New Password"
-                  className="w-full p-3 border border-gray-300 rounded-[10px] focus:outline-none focus:border-blue-500 dark:bg-[#2D3339] dark:border-gray-600 dark:text-white text-sm"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <input
-                  type="password"
-                  placeholder="Confirm Password"
-                  className="w-full p-3 border border-gray-300 rounded-[10px] focus:outline-none focus:border-blue-500 dark:bg-[#2D3339] dark:border-gray-600 dark:text-white text-sm"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
                 />
               </div>
 
@@ -168,11 +150,11 @@ export default function SecuritySettings() {
                   </button>
                 </Dialog.Close>
                 <button
-                  type="button"
-                  onClick={handleChangePassword}
-                  className="flex-1 py-3 bg-[#4d4ef2] text-white rounded-[10px] font-medium hover:bg-[#3b3be0] transition-colors shadow-lg shadow-blue-500/30"
+                  type="submit"
+                  disabled={isSendingReset}
+                  className="flex-1 py-3 bg-[#4d4ef2] text-white rounded-[10px] font-medium hover:bg-[#3b3be0] transition-colors shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Save
+                  {isSendingReset ? "Sending..." : "Send Reset Link"}
                 </button>
               </div>
             </form>

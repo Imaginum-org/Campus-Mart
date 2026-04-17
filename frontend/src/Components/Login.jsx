@@ -14,7 +14,6 @@ function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -37,7 +36,6 @@ function Login() {
         data: {
           email: email,
           password: password,
-          rememberMe: rememberMe, 
         },
         withCredentials: true,
       });
@@ -146,17 +144,7 @@ function Login() {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
 
-                <div className="flex justify-between items-center mt-[2vh]">
-                  <label className="flex items-center gap-1 text-[#848484] text-[12px] lg:text-sm cursor-pointer">
-                    <input
-                      type="checkbox"
-                      id="rememberMe"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)} 
-                    />
-                    <span>Remember me</span>
-                  </label>
-
+                <div className="flex justify-end items-center mt-[2vh]">
                   <div className="text-[#2d3339] dark:text-[#BBC2C9] text-[12px] lg:text-sm font-medium cursor-pointer">
                     <Link to={"/forgot-password"}>Forgot Password</Link>
                   </div>
