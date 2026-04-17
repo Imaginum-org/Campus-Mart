@@ -299,7 +299,12 @@ function Profile() {
                     {userDetails?.name || "User"} 
                   </div>
                   <div className="text-white text-sm opacity-80 font-light">
-                    Member since October 2022
+                    {userDetails?.createdAt
+                      ? `Member since ${new Date(userDetails.createdAt).toLocaleString("en-US", {
+                          month: "long",
+                          year: "numeric",
+                        })}`
+                      : "Member since date unavailable"}
                   </div>
                 </div>
               </div>
