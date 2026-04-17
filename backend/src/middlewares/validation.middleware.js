@@ -3,7 +3,7 @@ export const validate = (schema) => (req, res, next) => {
     const data = schema.parse(req.body);
     req.body = data; // sanitized data
     next();
-  } catch (error) {
+  } catch (error) { 
     return res.status(400).json({
       success: false,
       message: "Validation Error",

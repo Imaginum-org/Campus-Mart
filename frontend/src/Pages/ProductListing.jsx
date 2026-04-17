@@ -11,6 +11,8 @@ import { MdDelete } from "react-icons/md";
 import { HiOutlineLightBulb } from "react-icons/hi";
 import { BiMessageSquareError } from "react-icons/bi";
 import { Link } from "react-router-dom";
+import { uploadImage } from "../Utils/imageUpload";
+import { useNavigate } from "react-router-dom";
 
 const ProductListing = () => {
   useEffect(() => {
@@ -19,6 +21,7 @@ const ProductListing = () => {
 
   const handleRemoveImage = (index) => {
     setProductImages((prev) => prev.filter((_, i) => i !== index));
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const [isDark, setIsDark] = useState(false);
@@ -44,10 +47,43 @@ const ProductListing = () => {
   const [productDesc, setProductDesc] = useState("");
   const [productCondition, setProductCondition] = useState("");
   const [productPrice, setProductPrice] = useState("");
-  const [productAddress, setProductAddress] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [userAddress, setUserAddress] = useState(null);
   const [productImages, setProductImages] = useState([]);
+  const [imageFiles, setImageFiles] = useState([]);
   const [priceNegotiable, setPriceNegotiable] = useState("");
   const [usageDuration, setUsageDuration] = useState("");
+  const [selectedPayment, setSelectedPayment] = useState("");
+  const navigate = useNavigate();
+  useEffect(() => {
+    return () => {
+      productImages.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [productImages]);
+
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/api/address`,
+          { withCredentials: true },
+        );
+
+        const addresses = res.data.addresses;
+
+        // Pick default address
+        const defaultAddress =
+          addresses.find((addr) => addr.isDefault) || addresses[0];
+
+        setUserAddress(defaultAddress);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load address");
+      }
+    };
+
+    fetchAddresses();
+  }, []);
 
   const handleTermsChange = () => {
     setTermsAccepted(!termsAccepted);
@@ -62,63 +98,131 @@ const ProductListing = () => {
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     const validFiles = [];
-    const currentCount = productImages.length;
+    const previews = [];
 
     for (let file of files) {
-      const fileType = file.type;
-
-      if (!["image/png", "image/jpeg", "image/jpg"].includes(fileType)) {
+      if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
         toast.error("Only PNG and JPG images are allowed!", { id: toastId });
         continue;
       }
 
-      if (currentCount + validFiles.length >= 3) {
-        break;
-      }
+      if (imageFiles.length + validFiles.length >= 3) break;
 
-      validFiles.push(URL.createObjectURL(file));
+      validFiles.push(file);
+      previews.push(URL.createObjectURL(file));
     }
 
-    if (validFiles.length > 0) {
-      setProductImages((prev) => [...prev, ...validFiles]);
-    }
+    setImageFiles((prev) => [...prev, ...validFiles]);
+    setProductImages((prev) => [...prev, ...previews]);
 
     e.target.value = null;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
+    try {
+      setLoading(true);
+      if (!termsAccepted) {
+        return toast.error("Accept terms & conditions");
+      }
 
-    const formData = new FormData();
-    formData.append("productName", productName);
-    formData.append("productCategory", selectedCategory);
-    formData.append("productDescription", productDesc);
-    formData.append("productCondition", productCondition);
-    formData.append("productAddress", productAddress);
-    formData.append("productPrice", productPrice);
-    formData.append("priceNegotiable", priceNegotiable);
-    formData.append("usageDuration", usageDuration);
+      if (!selectedCategory) {
+        return toast.error("Select category");
+      }
 
-    axios
-      .post("/product/register", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
+      if (!productCondition) {
+        return toast.error("Select condition");
+      }
+
+      if (!selectedPayment) {
+        return toast.error("Select payment method");
+      }
+
+      if (!productPrice || Number(productPrice) <= 0) {
+        return toast.error("Enter valid price");
+      }
+
+      if (imageFiles.length === 0) {
+        return toast.error("Upload at least 1 image");
+      }
+
+      if (!userAddress) {
+        return toast.error("Please add an address in your profile first");
+      }
+
+      // Upload images
+      const uploadedUrls = [];
+      for (let file of imageFiles) {
+        const url = await uploadImage(file);
+        uploadedUrls.push(url);
+      }
+
+      // Send to backend
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/product`,
+        {
+          title: productName,
+          description: productDesc,
+
+          category: selectedCategory.toLowerCase().replace(" ", "_"),
+          condition: productCondition.toLowerCase(),
+
+          selling_price: Number(productPrice),
+          is_negotiable: priceNegotiable === "true",
+          payment_preference: selectedPayment.toLowerCase(),
+
+          images: uploadedUrls,
+
+          pickup_address_snapshot: {
+            address_line: userAddress.line1,
+            city: userAddress.city,
+            state: userAddress.state,
+            pincode: userAddress.pincode,
+          },
+
+          attributes: {
+            brand: document.getElementById("productBrandModel")?.value || "",
+            color: document.getElementById("productColor")?.value || "",
+            usage_duration: usageDuration,
+          },
         },
-      })
-      .then((response) => {
-        console.log("Product registered:", response.data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
+        {
+          withCredentials: true,
+        },
+      );
+
+      toast.success("Product listed successfully", {
+        duration: 1000,
       });
+      // redirect after success
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
+      // RESET CLEANLY
+      setProductImages([]);
+      setImageFiles([]);
+      setProductName("");
+      setProductDesc("");
+      setProductPrice("");
+      setSelectedCategory("");
+      setProductCondition("");
+      setSelectedPayment("");
+      setPriceNegotiable("");
+      setUsageDuration("");
+    } catch (error) {
+      console.error(error);
+      toast.error(error?.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const categoryOptions = [
     { value: "Electronics", label: "Electronics" },
-    { value: "Books", label: "Books" },
-    { value: "Daily Essential", label: "Daily Essential" },
-    { value: "Cycles", label: "Cycles" },
-    { value: "Mattress", label: "Mattress" },
+    { value: "Clothing", label: "Clothing" },
+    { value: "Daily Use", label: "Daily Use" },
+    { value: "Cycle", label: "Cycle" },
     { value: "Others", label: "Others" },
   ];
 
@@ -152,8 +256,8 @@ const ProductListing = () => {
       borderColor: isDark
         ? "transparent"
         : state.isFocused
-        ? "#534ff2"
-        : "#D1D5DB",
+          ? "#534ff2"
+          : "#D1D5DB",
       boxShadow: "none",
       minHeight: 40,
       cursor: "pointer",
@@ -161,8 +265,8 @@ const ProductListing = () => {
         borderColor: isDark
           ? "transparent"
           : state.isFocused
-          ? "#534ff2"
-          : "#D1D5DB",
+            ? "#534ff2"
+            : "#D1D5DB",
       },
     }),
     menu: (provided) => ({
@@ -177,8 +281,8 @@ const ProductListing = () => {
           ? "#111827"
           : "#E5E7EB"
         : isDark
-        ? "#131313"
-        : "#FFFFFF",
+          ? "#131313"
+          : "#FFFFFF",
       color: isDark ? "#F9FAFB" : "#111827",
       cursor: "pointer",
     }),
@@ -207,8 +311,8 @@ const ProductListing = () => {
       borderColor: isDark
         ? "transparent"
         : state.isFocused
-        ? "#534ff2"
-        : "#D1D5DB",
+          ? "#534ff2"
+          : "#D1D5DB",
       boxShadow: "none",
       minHeight: 40,
       cursor: "pointer",
@@ -216,8 +320,8 @@ const ProductListing = () => {
         borderColor: isDark
           ? "transparent"
           : state.isFocused
-          ? "#534ff2"
-          : "#D1D5DB",
+            ? "#534ff2"
+            : "#D1D5DB",
       },
     }),
     menu: (provided) => ({
@@ -232,8 +336,8 @@ const ProductListing = () => {
           ? "#111827"
           : "#E5E7EB"
         : isDark
-        ? "#131313"
-        : "#FFFFFF",
+          ? "#131313"
+          : "#FFFFFF",
       color: isDark ? "#F9FAFB" : "#111827",
       cursor: "pointer",
     }),
@@ -461,7 +565,7 @@ const ProductListing = () => {
                   placeholder="Select category"
                   value={
                     categoryOptions.find(
-                      (opt) => opt.value === selectedCategory
+                      (opt) => opt.value === selectedCategory,
                     ) || null
                   }
                 />
@@ -533,7 +637,7 @@ const ProductListing = () => {
                     placeholder="Select condition"
                     value={
                       conditionOptions.find(
-                        (opt) => opt.value === productCondition
+                        (opt) => opt.value === productCondition,
                       ) || null
                     }
                     onChange={(opt) =>
@@ -566,7 +670,7 @@ const ProductListing = () => {
                     placeholder="Select option"
                     value={
                       negotiableOptions.find(
-                        (opt) => opt.value === priceNegotiable
+                        (opt) => opt.value === priceNegotiable,
                       ) || null
                     }
                     onChange={(opt) => setPriceNegotiable(opt ? opt.value : "")}
@@ -617,12 +721,16 @@ const ProductListing = () => {
                   <MdChangeCircle className="text-blue-500 lg:size-8 size-6" />
                 </Link>
               </div>
-              <p className="bg-violet-50 lg:p-8 p-5 lg:mt-4 mt-2 rounded-xl text-[#555555] text-sm lg:text-base font-robotoFlex dark:bg-[#131313] xl:leading-5 dark:text-[#848484]">
-                526 - K Block <br />
-                Men's Hostel,VIT Vellore <br /> Available: Mon-Fri, 9AM-6PM
-                <br />
-                Ph: +91 91458 88569
-              </p>
+              {userAddress ? (
+                <p className="bg-violet-50 text-sm sm:text-base p-3 sm:p-4 border border-violet-200 rounded-md text-gray-700">
+                  {userAddress.line1}{" "}
+                  {userAddress.line2 && `, ${userAddress.line2}`} <br />
+                  {userAddress.city}, {userAddress.state} <br />
+                  {userAddress.pincode}
+                </p>
+              ) : (
+                <p>Loading address...</p>
+              )}
               <div></div>
             </div>
 
@@ -642,8 +750,9 @@ const ProductListing = () => {
                     type="radio"
                     name="payment"
                     id="cash"
-                    value="cash"
+                    value="CASH"
                     className="cursor-pointer"
+                    onChange={(e) => setSelectedPayment(e.target.value)}
                   />
                   <label
                     htmlFor="cash"
@@ -658,8 +767,9 @@ const ProductListing = () => {
                     type="radio"
                     name="payment"
                     id="upi"
-                    value="upi"
+                    value="UPI"
                     className="cursor-pointer"
+                    onChange={(e) => setSelectedPayment(e.target.value)}
                   />
                   <label
                     htmlFor="upi"
@@ -673,8 +783,9 @@ const ProductListing = () => {
                     type="radio"
                     name="payment"
                     id="both"
-                    value="both"
+                    value="BOTH"
                     className="cursor-pointer"
+                    onChange={(e) => setSelectedPayment(e.target.value)}
                   />
                   <label
                     htmlFor="both"
@@ -708,7 +819,7 @@ const ProductListing = () => {
                         value={productPrice}
                         onChange={(e) =>
                           setProductPrice(
-                            e.target.value.replace(/[^0-9.]/g, "")
+                            e.target.value.replace(/[^0-9.]/g, ""),
                           )
                         }
                         step="any"
@@ -745,10 +856,10 @@ const ProductListing = () => {
               <div className="flex md:mt-3 mt-5">
                 <button
                   type="submit"
-                  disabled={!termsAccepted}
-                  className="bg-stone-900 text-white rounded-md md:py-3 py-3 lg:w-[83.5vw] xl:w-[26vw] w-[85vw] font-medium text-sm lg:text-base  dark:bg-[#F1F1F1] dark:text-[#1A1D20] md:mt-3 md:text-base md:w-[88vw]"
+                  disabled={loading}
+                  className={`${loading ? "opacity-50 cursor-not-allowed bg-stone-900 text-white rounded-md md:py-3 py-3 lg:w-[83.5vw] xl:w-[26vw] w-[85vw] font-medium text-sm lg:text-base  dark:bg-[#F1F1F1] dark:text-[#1A1D20] md:mt-3 md:text-base md:w-[88vw]" : "bg-stone-900 text-white rounded-md md:py-3 py-3 lg:w-[83.5vw] xl:w-[26vw] w-[85vw] font-medium text-sm lg:text-base  dark:bg-[#F1F1F1] dark:text-[#1A1D20] md:mt-3 md:text-base md:w-[88vw]"}`}
                 >
-                  List my Product
+                  {loading ? "Listing..." : "List my Product"}
                 </button>
               </div>
             </div>

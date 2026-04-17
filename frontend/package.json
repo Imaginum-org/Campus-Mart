@@ -4,7 +4,6 @@
   "version": "1.0.0",
   "description": "Frontend for Campus Mart marketplace",
   "type": "module",
-
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -12,7 +11,6 @@
     "lint": "eslint .",
     "format": "echo \"Add Prettier here\""
   },
-
   "keywords": [
     "react",
     "vite",
@@ -23,6 +21,7 @@
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
     "@heroicons/react": "^2.2.0",
+    "@imagekit/javascript": "^5.3.0",
     "@radix-ui/colors": "^3.0.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "axios": "^1.14.0",
