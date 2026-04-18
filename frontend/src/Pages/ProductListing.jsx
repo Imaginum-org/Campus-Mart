@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "../Components/Header";
-import axios from "axios";
 import { IoImages } from "react-icons/io5";
 import { ArrowUpFromLine } from "lucide-react";
 import { MdChangeCircle } from "react-icons/md";
@@ -13,6 +12,7 @@ import { BiMessageSquareError } from "react-icons/bi";
 import { Link } from "react-router-dom";
 import { uploadImage } from "../Utils/imageUpload";
 import { useNavigate } from "react-router-dom";
+import api from "../utils/api";
 
 const ProductListing = () => {
   useEffect(() => {
@@ -54,7 +54,13 @@ const ProductListing = () => {
   const [priceNegotiable, setPriceNegotiable] = useState("");
   const [usageDuration, setUsageDuration] = useState("");
   const [selectedPayment, setSelectedPayment] = useState("");
+  const [brand, setBrand] = useState("");
+  const [color, setColor] = useState("");
+  const [originalPrice, setOriginalPrice] = useState("");
+
   const navigate = useNavigate();
+
+
   useEffect(() => {
     return () => {
       productImages.forEach((url) => URL.revokeObjectURL(url));
@@ -64,18 +70,18 @@ const ProductListing = () => {
   useEffect(() => {
     const fetchAddresses = async () => {
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/api/address`,
-          { withCredentials: true },
-        );
+        const res = await api.get("/api/address");
 
-        const addresses = res.data.addresses;
+        const addresses = res.data?.addresses || [];
 
-        // Pick default address
+        if (!Array.isArray(addresses)) {
+          throw new Error("Invalid address data format");
+        }
+
         const defaultAddress =
           addresses.find((addr) => addr.isDefault) || addresses[0];
 
-        setUserAddress(defaultAddress);
+        setUserAddress(defaultAddress || null);
       } catch (err) {
         console.error(err);
         toast.error("Failed to load address");
@@ -124,73 +130,82 @@ const ProductListing = () => {
     try {
       setLoading(true);
       if (!termsAccepted) {
+        setLoading(false);
         return toast.error("Accept terms & conditions");
       }
 
       if (!selectedCategory) {
+        setLoading(false);
         return toast.error("Select category");
       }
 
       if (!productCondition) {
+        setLoading(false);
         return toast.error("Select condition");
       }
 
       if (!selectedPayment) {
+        setLoading(false);
         return toast.error("Select payment method");
       }
 
       if (!productPrice || Number(productPrice) <= 0) {
+        setLoading(false);
         return toast.error("Enter valid price");
       }
 
       if (imageFiles.length === 0) {
+        setLoading(false);
         return toast.error("Upload at least 1 image");
       }
 
       if (!userAddress) {
+        setLoading(false);
         return toast.error("Please add an address in your profile first");
+      }
+      if (originalPrice && Number(productPrice) > Number(originalPrice)) {
+        setLoading(false);
+        return toast.error(
+          "Selling price cannot be greater than original price",
+        );
       }
 
       // Upload images
-      const uploadedUrls = [];
-      for (let file of imageFiles) {
-        const url = await uploadImage(file);
-        uploadedUrls.push(url);
-      }
+     const uploads = await Promise.all(
+       imageFiles.map((file) => uploadImage(file)),
+     );
+
+     const uploadedUrls = uploads.map((img) => img.url);
+     const uploadedFileIds = uploads.map((img) => img.fileId);
 
       // Send to backend
-      await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/product`,
-        {
-          title: productName,
-          description: productDesc,
+      await api.post("/api/product", {
+        title: productName.trim(),
+        description: productDesc.trim(),
 
-          category: selectedCategory.toLowerCase().replace(" ", "_"),
-          condition: productCondition.toLowerCase(),
+        category: selectedCategory,
+        condition: productCondition,
 
-          selling_price: Number(productPrice),
-          is_negotiable: priceNegotiable === "true",
-          payment_preference: selectedPayment.toLowerCase(),
+        selling_price: Number(productPrice),
+        is_negotiable: priceNegotiable === "true",
+        payment_preference: selectedPayment,
 
-          images: uploadedUrls,
-
-          pickup_address_snapshot: {
-            address_line: userAddress.line1,
-            city: userAddress.city,
-            state: userAddress.state,
-            pincode: userAddress.pincode,
-          },
-
-          attributes: {
-            brand: document.getElementById("productBrandModel")?.value || "",
-            color: document.getElementById("productColor")?.value || "",
-            usage_duration: usageDuration,
-          },
+        images: uploadedUrls,
+        image_file_ids: uploadedFileIds,
+        original_price: Number(originalPrice),
+        pickup_address_snapshot: {
+          address_line: userAddress.address_line || userAddress.line1,
+          city: userAddress.city,
+          state: userAddress.state,
+          pincode: userAddress.pincode,
         },
-        {
-          withCredentials: true,
+
+        attributes: {
+          brand,
+          color,
+          usage_duration: usageDuration,
         },
-      );
+      });
 
       toast.success("Product listed successfully", {
         duration: 1000,
@@ -210,26 +225,31 @@ const ProductListing = () => {
       setSelectedPayment("");
       setPriceNegotiable("");
       setUsageDuration("");
+      setTermsAccepted(false);
     } catch (error) {
       console.error(error);
-      toast.error(error?.response?.data?.message || "Something went wrong");
+      toast.error(
+        error?.response?.data?.message ||
+        error?.message ||
+        "Unexpected error occurred"
+      );
     } finally {
       setLoading(false);
     }
   };
 
   const categoryOptions = [
-    { value: "Electronics", label: "Electronics" },
-    { value: "Clothing", label: "Clothing" },
-    { value: "Daily Use", label: "Daily Use" },
-    { value: "Cycle", label: "Cycle" },
-    { value: "Others", label: "Others" },
+    { value: "electronics", label: "Electronics" },
+    { value: "clothing", label: "Clothing" },
+    { value: "daily_use", label: "Daily Use" },
+    { value: "cycle", label: "Cycle" },
+    { value: "others", label: "Others" },
   ];
 
   const conditionOptions = [
-    { value: "Excellent", label: "Excellent" },
-    { value: "Good", label: "Good" },
-    { value: "Poor", label: "Poor" },
+    { value: "excellent", label: "Excellent" },
+    { value: "good", label: "Good" },
+    { value: "poor", label: "Poor" },
   ];
 
   const negotiableOptions = [
@@ -355,6 +375,24 @@ const ProductListing = () => {
     }),
   };
 
+  const isFormValid =
+    productName.trim() &&
+    productDesc.trim() &&
+    selectedCategory &&
+    productCondition &&
+    selectedPayment &&
+    productPrice &&
+    Number(productPrice) > 0 &&
+    imageFiles.length > 0 &&
+    userAddress &&
+    termsAccepted &&
+    brand.trim() &&
+    color.trim() &&
+    originalPrice &&
+    Number(originalPrice) >= Number(productPrice) &&
+    usageDuration &&
+    priceNegotiable;
+
   return (
     <div className="overflow-hidden">
       <Toaster
@@ -409,6 +447,7 @@ const ProductListing = () => {
                   id="fileInput"
                   className="hidden"
                   onChange={handleImageChange}
+                  disabled={imageFiles.length >= 3}
                   accept="image/*"
                   multiple
                 />
@@ -416,9 +455,8 @@ const ProductListing = () => {
                 <h1 className="lg:text-sm xl:text-xs font-roboto leading-snug font-light text-[0.64rem] ml-1 md:ml-0 md:text-[1.8vw]">
                   {productImages.length === 0
                     ? "Upload images (up to 3)"
-                    : `${productImages.length} image${
-                        productImages.length > 1 ? "s" : ""
-                      } uploaded`}
+                    : `${productImages.length} image${productImages.length > 1 ? "s" : ""
+                    } uploaded`}
                 </h1>
               </div>
 
@@ -510,7 +548,7 @@ const ProductListing = () => {
 
           {/* top right (Form) */}
           <div className="flex flex-col xl:h-full xl:w-2/3 xl:ml-[-4.7vw] ml-5 mr-5">
-            <form className="flex flex-col xl:flex-row w-full gap-6 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.10)] rounded-2xl lg:pt-5 pr-6 lg:pr-8 pl-6 lg:pl-8 pb-5 lg:mt-9 xl:mt-16 md:mt-12 mt-6 dark:bg-[#1A1D20] pt-4">
+            <div className="flex flex-col xl:flex-row w-full gap-6 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.10)] rounded-2xl lg:pt-5 pr-6 lg:pr-8 pl-6 lg:pl-8 pb-5 lg:mt-9 xl:mt-16 md:mt-12 mt-6 dark:bg-[#1A1D20] pt-4">
               <div className="flex flex-col h-full xl:w-1/2">
                 {/* Product name */}
                 <label
@@ -522,6 +560,7 @@ const ProductListing = () => {
                 <input
                   required
                   id="productName"
+                  maxLength={120}
                   type="text"
                   placeholder="Enter product name"
                   className="py-2 outline-none border border-slate-300 rounded-md px-2 placeholder:text-sm font-roboto dark:bg-[#131313] dark:border-0 dark:placeholder:text-[#848484] dark:text-white"
@@ -539,6 +578,7 @@ const ProductListing = () => {
                 <textarea
                   required
                   id="productDesc"
+                  maxLength={2000}
                   placeholder="Add all the details about the product and provide enough details to trust your product."
                   className="outline-none border border-slate-300 rounded-md px-2 py-2 xl:h-[28.5vh] lg:h-[18vh] h-[24vh] w-full resize-none overflow-auto placeholder:text-sm font-roboto dark:bg-[#1A1D20] dark:border-[#515151] dark:placeholder:text-[#D7D7D7] dark:text-white mt-1"
                   onChange={(e) => setProductDesc(e.target.value)}
@@ -581,6 +621,7 @@ const ProductListing = () => {
                 <input
                   required
                   id="productBrandModel"
+                  onChange={(e) => setBrand(e.target.value)}
                   type="text"
                   placeholder="Enter Brand or model name"
                   className="outline-none border border-slate-300 rounded-md px-2 py-2 placeholder:text-sm font-roboto dark:bg-[#131313] dark:placeholder:text-[#848484] dark:text-white dark:border-0 mt-1"
@@ -596,6 +637,7 @@ const ProductListing = () => {
                 <input
                   required
                   id="productColor"
+                  onChange={(e) => setColor(e.target.value)}
                   type="text"
                   placeholder="Product Color"
                   className="outline-none border border-slate-300 rounded-md px-2 py-2 placeholder:text-sm font-roboto dark:bg-[#131313] dark:text-white dark:placeholder:text-[#848484] dark:border-0 mt-1"
@@ -615,12 +657,14 @@ const ProductListing = () => {
                     required
                     id="productOriginalPrice"
                     type="number"
+                    min="1"
                     placeholder="Enter Brand or model name"
+                    onChange={(e) => setOriginalPrice(e.target.value)}
                     className="outline-none border border-slate-300 rounded-r-md px-2 py-2 xl:w-[30vw] w-full font-roboto dark:bg-[#131313] dark:text-white dark:placeholder:text-[#848484] dark:border-[#515151] dark:border-0"
                   />
                 </div>
               </div>
-            </form>
+            </div>
 
             {/* Condition, Date of purchase, Negotiable, Usage */}
             <div className="w-full lg:mt-4 mt-7">
@@ -723,7 +767,7 @@ const ProductListing = () => {
               </div>
               {userAddress ? (
                 <p className="bg-violet-50 text-sm sm:text-base p-3 sm:p-4 border border-violet-200 rounded-md text-gray-700">
-                  {userAddress.line1}{" "}
+                  {userAddress.address_line || userAddress.line1}{" "}
                   {userAddress.line2 && `, ${userAddress.line2}`} <br />
                   {userAddress.city}, {userAddress.state} <br />
                   {userAddress.pincode}
@@ -750,7 +794,7 @@ const ProductListing = () => {
                     type="radio"
                     name="payment"
                     id="cash"
-                    value="CASH"
+                    value="cash"
                     className="cursor-pointer"
                     onChange={(e) => setSelectedPayment(e.target.value)}
                   />
@@ -767,7 +811,7 @@ const ProductListing = () => {
                     type="radio"
                     name="payment"
                     id="upi"
-                    value="UPI"
+                    value="upi"
                     className="cursor-pointer"
                     onChange={(e) => setSelectedPayment(e.target.value)}
                   />
@@ -783,7 +827,7 @@ const ProductListing = () => {
                     type="radio"
                     name="payment"
                     id="both"
-                    value="BOTH"
+                    value="both"
                     className="cursor-pointer"
                     onChange={(e) => setSelectedPayment(e.target.value)}
                   />
@@ -856,8 +900,11 @@ const ProductListing = () => {
               <div className="flex md:mt-3 mt-5">
                 <button
                   type="submit"
-                  disabled={loading}
-                  className={`${loading ? "opacity-50 cursor-not-allowed bg-stone-900 text-white rounded-md md:py-3 py-3 lg:w-[83.5vw] xl:w-[26vw] w-[85vw] font-medium text-sm lg:text-base  dark:bg-[#F1F1F1] dark:text-[#1A1D20] md:mt-3 md:text-base md:w-[88vw]" : "bg-stone-900 text-white rounded-md md:py-3 py-3 lg:w-[83.5vw] xl:w-[26vw] w-[85vw] font-medium text-sm lg:text-base  dark:bg-[#F1F1F1] dark:text-[#1A1D20] md:mt-3 md:text-base md:w-[88vw]"}`}
+                  disabled={loading || !isFormValid}
+                  className={`${loading || !isFormValid
+                      ? "opacity-50 cursor-not-allowed bg-stone-900 text-white rounded-md md:py-3 py-3 lg:w-[83.5vw] xl:w-[26vw] w-[85vw] font-medium text-sm lg:text-base  dark:bg-[#F1F1F1] dark:text-[#1A1D20] md:mt-3 md:text-base md:w-[88vw]"
+                      : "bg-stone-900 text-white rounded-md md:py-3 py-3 lg:w-[83.5vw] xl:w-[26vw] w-[85vw] font-medium text-sm lg:text-base  dark:bg-[#F1F1F1] dark:text-[#1A1D20] md:mt-3 md:text-base md:w-[88vw]"
+                    }`}
                 >
                   {loading ? "Listing..." : "List my Product"}
                 </button>

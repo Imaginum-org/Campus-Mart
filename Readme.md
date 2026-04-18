@@ -1,290 +1,14 @@
-<div align="center">
+# Campus Mart
 
-# Campus Mart 🛒
+Campus Mart is a full-stack monorepo with:
 
-### Campus marketplace · full-stack monorepo
+- a React + Vite frontend in `frontend/`
+- an Express + MongoDB backend API in `backend/`
 
-**React · Vite · Express · MongoDB**
+## Repository Layout
 
-<br />
-
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Express](https://img.shields.io/badge/Express-5-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-
-<br />
-
-[Overview](#overview) ·
-[Architecture](#architecture) ·
-[Stack](#tech-stack) ·
-[Setup](#getting-started) ·
-[API](#http-api) ·
-[Frontend routes](#frontend-routes) ·
-[Scripts](#npm-scripts)
-
-<br />
-
-</div>
-
----
-
-## Overview
-
-**Campus Mart** is a monorepo for a campus-oriented marketplace: a **React (Vite)** web client and a **Node.js (Express)** API backed by **MongoDB**.
-
-| Package | Path | Role |
-|:--------|:-----|:-----|
-| **Web client** | [`frontend/`](frontend/) | React SPA, Tailwind CSS, client-side routing (`react-router-dom`) |
-| **API** | [`backend/`](backend/) | REST API under `/api`, MongoDB via Mongoose, JWT (`accessToken` cookie or `Authorization` bearer) |
-
-The backend implements **authentication** (register, login, email verification, logout, forgot / reset password, resend verification) with transactional email via [Resend](https://resend.com/), **user profile** and **account deletion**, and **product** listing: create (authenticated), list with filters / pagination, and fetch by id.
-
----
-
-## Architecture
-
-```mermaid
-flowchart LR
-  subgraph Client["Frontend (Vite + React)"]
-    UI[Pages & Components]
-  end
-
-  subgraph Server["Backend (Express)"]
-    API["/api · /health"]
-  end
-
-  subgraph Data["Persistence"]
-    DB[(MongoDB)]
-  end
-
-  Ext["Resend · email"]
-
-  UI <-->|HTTP · cookies| API
-  API --> DB
-  API --> Ext
-```
-
----
-
-## Tech stack
-
-<details>
-<summary><strong>Frontend</strong> — see <code>frontend/package.json</code></summary>
-
-<br />
-
-| Category | Packages |
-|:---------|:---------|
-| **Core** | React 18, Vite 6, `react-router-dom` 7 |
-| **Styling** | Tailwind CSS 3, PostCSS, Autoprefixer |
-| **HTTP** | Axios — instance in [`src/Utils/Axios.jsx`](frontend/src/Utils/Axios.jsx), base URL in [`src/Common/SummaryApi.js`](frontend/src/Common/SummaryApi.js) |
-| **UI & motion** | Framer Motion, Swiper (e.g. [`Pages/Home.jsx`](frontend/src/Pages/Home.jsx)), Radix UI (`@radix-ui/colors`, `@radix-ui/react-alert-dialog`, `radix-ui`), Heroicons, Lucide React, React Icons, `react-burger-menu` |
-| **Forms & inputs** | react-datepicker, react-select, react-slider |
-| **Feedback & UX** | react-hot-toast, react-toastify, react-spinners |
-| **Utilities** | `clsx`, `date-fns` |
-| **Other** | `firebase` (listed in dependencies), **EmailJS** (`@emailjs/browser`) for the Contact page ([`ContactUs.jsx`](frontend/src/Pages/ContactUs.jsx)) |
-| **Tooling** | ESLint 9, React TS types |
-
-</details>
-
-<details>
-<summary><strong>Backend</strong> — see <code>backend/package.json</code></summary>
-
-<br />
-
-| Category | Packages |
-|:---------|:---------|
-| **Runtime** | Node.js (ES modules), Express 5 |
-| **Data** | Mongoose 9 → MongoDB |
-| **Auth** | jsonwebtoken, bcrypt |
-| **Validation** | Zod ([`src/validations/product.validation.js`](backend/src/validations/product.validation.js), [`validation.middleware.js`](backend/src/middlewares/validation.middleware.js)) |
-| **Email** | Resend ([`src/config/sendEmail.js`](backend/src/config/sendEmail.js)) |
-| **HTTP & security** | Helmet, CORS, cookie-parser, morgan, dotenv, **xss**, **express-rate-limit** (dependency; not wired in [`app.js`](backend/src/app.js)), **slugify** (used in [`Product.model.js`](backend/src/models/Product.model.js)), **imagekit** (package present; [`src/utils/imagekit.js`](backend/src/utils/imagekit.js) is empty) |
-
-</details>
-
----
-
-## Prerequisites
-
-- **Node.js** 18+ (recommended)
-- **MongoDB** (local or hosted URI)
-- **Resend** API key for verification and password-reset emails
-
----
-
-## Environment variables
-
-### Backend
-
-Copy [`backend/.env.sample`](backend/.env.sample) → `backend/.env`. Variables **read in** `backend/src/` (via `process.env`):
-
-| Variable | Purpose |
-|:---------|:--------|
-| `PORT` | HTTP port (defaults to `5000` in [`server.js`](backend/server.js) if unset) |
-| `FRONTEND_URL` | CORS origin; links in verification and reset emails |
-| `MONGO_URL` | MongoDB connection string ([`config/db.js`](backend/src/config/db.js)) |
-| `SECRET_KEY_ACCESS_TOKEN` | Sign / verify JWTs ([`auth.middleware.js`](backend/src/middlewares/auth.middleware.js), [`generatedAccessToken.js`](backend/src/utils/generatedAccessToken.js), [`generatedRefreshToken.js`](backend/src/utils/generatedRefreshToken.js)) |
-| `RESEND_API_KEY` | Required for [`sendEmail.js`](backend/src/config/sendEmail.js) |
-| `NODE_ENV` | e.g. `development` / `production` (cookies, logging) |
-
-[`backend/.env.sample`](backend/.env.sample) also lists `JWT_SECRET`, `SECRET_KEY_REFERECE_TOKEN`, and `CLOUDINARY_*` — these are **not** referenced under `backend/src/` in the current code.
-
-### Frontend
-
-Copy [`frontend/.env.sample`](frontend/.env.sample) → `frontend/.env`.
-
-The Contact form uses **EmailJS** env vars as in [`ContactUs.jsx`](frontend/src/Pages/ContactUs.jsx):
-
-| Variable | Purpose |
-|:---------|:--------|
-| `VITE_SERVICE_ID` | EmailJS service |
-| `VITE_TEMPLATE_ID` | EmailJS template |
-| `VITE_PUBLIC_KEY` | EmailJS public key |
-
-[`frontend/.env.sample`](frontend/.env.sample) lists `VITE_FIREBASE_*`, `VITE_ENABLE_ANALYTICS`, `VITE_API_URL`, and `TEMPLATE_ID` / `PUBLIC_KEY` / `SERVICE_ID` without the `VITE_` prefix — align with the variables above for EmailJS. Auth-related API calls use the base URL in [`SummaryApi.js`](frontend/src/Common/SummaryApi.js) (`http://localhost:5000`).
-
----
-
-## Getting started
-
-<table>
-<tr>
-<td width="50%" valign="top">
-
-**1 · Install**
-
-```bash
-cd backend && npm install
-cd ../frontend && npm install
-```
-
-**2 · Env**
-
-Copy and fill `backend/.env` and `frontend/.env` (see above).
-
-</td>
-<td width="50%" valign="top">
-
-**3 · API**
-
-```bash
-cd backend
-npm run dev
-```
-
-`GET /health` → status, uptime, timestamp.
-
-**4 · Client**
-
-```bash
-cd frontend
-npm run dev
-```
-
-Default Vite port **5173**; [`vite.config.js`](frontend/vite.config.js) sets `server.host: true`.
-
-</td>
-</tr>
-</table>
-
----
-
-## HTTP API
-
-Application routes are under **`/api`**.
-
-| Prefix | File | Scope |
-|:-------|:-----|:------|
-| [`/api/auth`](backend/src/routes/auth.routes.js) | `auth.routes.js` | Register, login, verify email, logout, forgot / reset password, resend verification |
-| [`/api/user`](backend/src/routes/user.routes.js) | `user.routes.js` | Profile, delete account (authenticated) |
-| [`/api/product`](backend/src/routes/product.routes.js) | `product.routes.js` | Create product (authenticated); list and get by id (public) |
-
-### Auth — [`/api/auth`](backend/src/routes/auth.routes.js)
-
-| Method | Path | Purpose |
-|:-------|:-----|:--------|
-| `POST` | `/register` | Register; sends verification email |
-| `POST` | `/login` | Login; sets cookies |
-| `POST` | `/verify-email` | Complete verification |
-| `GET` | `/logoutUser` | Logout |
-| `POST` | `/forgot-password` | Start reset |
-| `GET` | `/reset-password/:token` | Validate token |
-| `POST` | `/reset-password/:token` | Set new password |
-| `POST` | `/resend-verification` | Resend verification email |
-
-### User — [`/api/user`](backend/src/routes/user.routes.js)
-
-| Method | Path | Auth | Purpose |
-|:-------|:-----|:----:|:--------|
-| `GET` | `/userProfile` | Yes | Current user |
-| `DELETE` | `/deleteAccount` | Yes | Delete account |
-
-### Product — [`/api/product`](backend/src/routes/product.routes.js)
-
-| Method | Path | Auth | Purpose |
-|:-------|:-----|:----:|:--------|
-| `POST` | `/` | Yes | Create product (body validated with Zod) |
-| `GET` | `/` | No | List products; query params supported in [`product.service.js`](backend/src/services/product.service.js): `page`, `limit`, `search`, `category`, `min_price`, `max_price`, `sort` |
-| `GET` | `/:id` | No | Single product (increments `views_count`) |
-
-Protected routes: JWT from **`accessToken` cookie** or **`Authorization: Bearer <token>`** ([`auth.middleware.js`](backend/src/middlewares/auth.middleware.js)).
-
----
-
-## Frontend routes
-
-Defined in [`src/App.jsx`](frontend/src/App.jsx).
-
-**Public:** `/`, `/login`, `/signup`, `/checkEmail`, `/forgot-password`, `/reset-password/:token`, `/verify-email`
-
-**Protected** (`ProtectedRoute`): `/profile`, `/notification`, `/myorders`, `/wishlist`, `/productlisted`, `/termscondition`, `/contact`, `/product`, `/upload`, `/price`, `/chat`, `/category/:categoryName`
-
-Catch-all → redirect to `/`.
-
----
-
-## NPM scripts
-
-| | Frontend | Backend |
-|:--|:---------|:--------|
-| **Dev** | `npm run dev` | `npm run dev` → `nodemon server.js` |
-| **Prod** | `npm run build` · `npm run preview` | `npm start` → `node server.js` |
-| **Quality** | `npm run lint` | `npm test` — placeholder (exits with error if run) |
-
----
-
-## Security (as implemented)
-
-| Measure | Detail |
-|:--------|:-------|
-| Passwords | **bcrypt** on register / reset |
-| Transport & headers | **Helmet** (with `crossOriginResourcePolicy: false`); JSON body limit **10kb** in [`app.js`](backend/src/app.js) |
-| Input | **xss** on string `body` / `params`; middleware removes `$` / `.` keys from `body` / `params` to mitigate NoSQL injection |
-| Origin | **CORS** to `FRONTEND_URL`, `credentials: true` |
-| Sessions / tokens | JWT verified from cookie or bearer header |
-
----
-
-## Project structure
-
-```
+```text
 Campus Mart/
-├── frontend/
-│   ├── src/
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   ├── index.css
-│   │   ├── Common/          # API paths & base URL (SummaryApi.js)
-│   │   ├── Components/
-│   │   ├── Pages/
-│   │   ├── Utils/           # Axios instance (Axios.jsx)
-│   │   └── assets/
-│   ├── vite.config.js
-│   └── package.json
-│
 ├── backend/
 │   ├── server.js
 │   ├── package.json
@@ -293,27 +17,250 @@ Campus Mart/
 │       ├── config/
 │       ├── controllers/
 │       ├── middlewares/
-│       ├── models/          # User, Product
-│       ├── routes/          # auth, user, product
-│       ├── services/        # product.service.js
-│       ├── validations/     # product.validation.js (Zod)
-│       └── utils/
-│
+│       ├── models/
+│       ├── routes/
+│       ├── services/
+│       ├── utils/
+│       └── validations/
+├── frontend/
+│   ├── package.json
+│   ├── vite.config.js
+│   └── src/
+│       ├── App.jsx
+│       ├── Common/
+│       ├── Components/
+│       ├── Pages/
+│       ├── Utils/
+│       └── main.jsx
 └── Readme.md
 ```
 
----
+## Tech Stack
 
-## License
+### Frontend (`frontend/package.json`)
 
-Backend [`package.json`](backend/package.json) declares **ISC**. There is no root `LICENSE` file; confirm terms with your team or legal policy.
+- React 18
+- Vite 6
+- React Router (`react-router-dom`)
+- Axios
+- Tailwind CSS + PostCSS + Autoprefixer
+- `@emailjs/browser`
+- `@imagekit/javascript`
 
----
+### Backend (`backend/package.json`)
 
-<div align="center">
+- Node.js (ES modules)
+- Express 5
+- MongoDB via Mongoose
+- JWT (`jsonwebtoken`) + `bcrypt`
+- Zod validation
+- `resend` for email sending
+- `google-auth-library` for Google OAuth flow
+- Security and middleware packages: `helmet`, `cors`, `cookie-parser`, `morgan`, `xss`, `express-rate-limit`
 
-**Campus Mart** · Built for campus communities
+## Prerequisites
 
-<br />
+- Node.js 18 or higher
+- MongoDB instance
 
-</div>
+## Environment Variables
+
+### Backend (`backend/.env`)
+
+Sample file: `backend/.env.sample`
+
+```env
+PORT=
+FRONTEND_URL=
+MONGO_URL=
+SECRET_KEY_ACCESS_TOKEN=
+SECRET_KEY_REFRESH_TOKEN=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+RESEND_API_KEY=
+NODE_ENV=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=
+```
+
+### Frontend (`frontend/.env`)
+
+Sample file: `frontend/.env.sample`
+
+```env
+VITE_IMAGEKIT_PUBLIC_KEY=
+VITE_IMAGEKIT_URL_ENDPOINT=
+VITE_API_BASE_URL=
+```
+
+Additionally, `frontend/src/Pages/ContactUs.jsx` uses:
+
+- `VITE_SERVICE_ID`
+- `VITE_TEMPLATE_ID`
+- `VITE_PUBLIC_KEY`
+
+## Getting Started
+
+### 1) Install dependencies
+
+```bash
+cd backend
+npm install
+
+cd ../frontend
+npm install
+```
+
+### 2) Start backend
+
+```bash
+cd backend
+npm run dev
+```
+
+Backend starts from `server.js` and exposes:
+
+- `GET /health`
+- API base routes under `/api/*`
+
+### 3) Start frontend
+
+```bash
+cd frontend
+npm run dev
+```
+
+## Backend API
+
+Base routes are mounted in `backend/src/app.js`.
+
+### Health
+
+- `GET /health`
+
+### Auth (`/api/auth`)
+
+Defined in `backend/src/routes/auth.routes.js`:
+
+- `POST /register`
+- `POST /login`
+- `GET /google`
+- `GET /google/callback`
+- `POST /verify-email`
+- `GET /check-verification`
+- `GET /logoutUser`
+- `POST /forgot-password`
+- `GET /reset-password/:token`
+- `POST /reset-password/:token`
+- `POST /resend-verification`
+- `POST /refresh-token`
+
+### User (`/api/user`)
+
+Defined in `backend/src/routes/user.routes.js`:
+
+- `GET /userProfile` (auth required)
+- `PUT /updateProfile` (auth required)
+- `DELETE /deleteAccount` (auth required)
+
+### Product (`/api/product`)
+
+Defined in `backend/src/routes/product.routes.js`:
+
+- `POST /` (auth required, rate-limited, Zod validation)
+- `GET /`
+- `GET /:id`
+
+`GET /api/product` supports query parameters from `backend/src/services/product.service.js`:
+
+- `page`
+- `limit`
+- `search`
+- `category`
+- `min_price`
+- `max_price`
+- `sort` (`latest`, `price_low`, `price_high`)
+
+### Report (`/api/report`)
+
+Defined in `backend/src/routes/report.routes.js`:
+
+- `POST /product/:productId` (auth required, Zod validation)
+
+### Address (`/api/address`)
+
+Defined in `backend/src/routes/address.routes.js`:
+
+- `POST /` (auth required)
+- `GET /` (auth required)
+- `GET /:addressId` (auth required)
+- `PUT /:addressId` (auth required)
+- `DELETE /:addressId` (auth required)
+- `PATCH /:addressId/default` (auth required)
+
+### ImageKit (`/api/imagekit`)
+
+Defined in `backend/src/routes/imagekit.routes.js`:
+
+- `GET /auth` (auth required)
+
+## Frontend Routes
+
+Defined in `frontend/src/App.jsx`.
+
+### Public routes
+
+- `/`
+- `/login`
+- `/signup`
+- `/checkEmail`
+- `/forgot-password`
+- `/reset-password/:token`
+- `/verify-email`
+
+### Protected routes (wrapped with `ProtectedRoute`)
+
+- `/profile`
+- `/notification`
+- `/myorders`
+- `/wishlist`
+- `/productlisted`
+- `/termscondition`
+- `/contact`
+- `/product`
+- `/upload`
+- `/price`
+- `/chat`
+- `/category/:categoryName`
+
+Fallback route redirects unknown paths to `/`.
+
+## Authentication and Security Notes
+
+From backend middleware and controllers:
+
+- auth accepts `accessToken` cookie or `Authorization: Bearer <token>`
+- JWT secrets: `SECRET_KEY_ACCESS_TOKEN` and `SECRET_KEY_REFRESH_TOKEN`
+- cookies are `httpOnly`, with `secure`/`sameSite` based on `NODE_ENV`
+- `helmet`, CORS, body sanitization and XSS filtering are enabled in `app.js`
+- product create endpoint uses `express-rate-limit`
+
+## Available Scripts
+
+### Backend (`backend/package.json`)
+
+- `npm run dev` - run with nodemon
+- `npm start` - run with node
+- `npm run prod` - run with `NODE_ENV=production`
+- `npm run lint` - placeholder echo command
+- `npm run format` - placeholder echo command
+
+### Frontend (`frontend/package.json`)
+
+- `npm run dev` - start Vite dev server
+- `npm run build` - build production bundle
+- `npm run preview` - preview built app
+- `npm run lint` - run ESLint
+- `npm run format` - placeholder echo command

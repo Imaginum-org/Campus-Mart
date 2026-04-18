@@ -37,11 +37,14 @@ export const createProductSchema = z.object({
     .optional(),
 
   pickup_address_snapshot: z.object({
-    address_line: z.string().optional(),
+    address_line: z.string().min(3),
     city: z.string().min(2),
     state: z.string().optional(),
     pincode: z.string().optional(),
     mobile: z.string().optional(),
     additional_info: z.string().optional(),
   }),
+
+  image_file_ids: z.array(z.string().min(1)).optional(),
+  purchase_date: z.string().datetime().optional(),
 });

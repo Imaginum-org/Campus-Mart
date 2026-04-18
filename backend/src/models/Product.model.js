@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import slugify from "slugify";
+import { nanoid } from "nanoid";
 
 import {
   PRODUCT_STATUS,
@@ -118,10 +119,10 @@ const productSchema = new Schema(
     },
 
     pickup_address_snapshot: {
-      address_line: { type: String, trim: true },
-      city: { type: String, trim: true },
-      state: { type: String, trim: true },
-      pincode: { type: String, trim: true },
+      address_line: { type: String, trim: true, required: true },
+      city: { type: String, trim: true, required: true },
+      state: { type: String, trim: true, required: true },
+      pincode: { type: String, trim: true, required: true },
       mobile: { type: String, trim: true },
       additional_info: { type: String, trim: true },
     },
@@ -180,7 +181,11 @@ const productSchema = new Schema(
 
 productSchema.index({ title: "text", description: "text" });
 productSchema.index({ category: 1, selling_price: 1 });
-productSchema.index({ createdAt: -1 });
+productSchema.index({ seller_id: 1, createdAt: -1 });
+productSchema.index(
+  { seller_id: 1, title: 1, selling_price: 1 },
+  { unique: false },
+);
 /*
 For Nearby products and Nearby products
 $near can be accessed
@@ -196,7 +201,7 @@ productSchema.pre("save", async function () {
         strict: true,
       });
 
-      this.slug = `${baseSlug}-${Date.now().toString().slice(-6)}`;
+      this.slug = `${baseSlug}-${nanoid(6)}`;
     }
 
     // Price validation
@@ -204,7 +209,7 @@ productSchema.pre("save", async function () {
       throw new Error("Selling price cannot be greater than original price");
     }
   } catch (error) {
-    throw new Error(error);
+    throw error;
   }
 });
 
