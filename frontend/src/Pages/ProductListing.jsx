@@ -12,7 +12,7 @@ import { BiMessageSquareError } from "react-icons/bi";
 import { Link } from "react-router-dom";
 import { uploadImage } from "../Utils/imageUpload";
 import { useNavigate } from "react-router-dom";
-import api from "../utils/api";
+import api from "../Utils/api";
 
 const ProductListing = () => {
   useEffect(() => {
