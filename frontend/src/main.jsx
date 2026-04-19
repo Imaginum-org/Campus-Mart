@@ -9,5 +9,5 @@ createRoot(document.getElementById("root")).render(
     <ThemeProvider>
       <App />
     </ThemeProvider>
-  </BrowserRouter>
+  </BrowserRouter>,
 );

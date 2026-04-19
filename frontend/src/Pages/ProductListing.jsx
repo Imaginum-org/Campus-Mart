@@ -60,7 +60,6 @@ const ProductListing = () => {
 
   const navigate = useNavigate();
 
-
   useEffect(() => {
     return () => {
       productImages.forEach((url) => URL.revokeObjectURL(url));
@@ -171,12 +170,12 @@ const ProductListing = () => {
       }
 
       // Upload images
-     const uploads = await Promise.all(
-       imageFiles.map((file) => uploadImage(file)),
-     );
+      const uploads = await Promise.all(
+        imageFiles.map((file) => uploadImage(file)),
+      );
 
-     const uploadedUrls = uploads.map((img) => img.url);
-     const uploadedFileIds = uploads.map((img) => img.fileId);
+      const uploadedUrls = uploads.map((img) => img.url);
+      const uploadedFileIds = uploads.map((img) => img.fileId);
 
       // Send to backend
       await api.post("/api/product", {
@@ -230,8 +229,8 @@ const ProductListing = () => {
       console.error(error);
       toast.error(
         error?.response?.data?.message ||
-        error?.message ||
-        "Unexpected error occurred"
+          error?.message ||
+          "Unexpected error occurred",
       );
     } finally {
       setLoading(false);
@@ -455,8 +454,9 @@ const ProductListing = () => {
                 <h1 className="lg:text-sm xl:text-xs font-roboto leading-snug font-light text-[0.64rem] ml-1 md:ml-0 md:text-[1.8vw]">
                   {productImages.length === 0
                     ? "Upload images (up to 3)"
-                    : `${productImages.length} image${productImages.length > 1 ? "s" : ""
-                    } uploaded`}
+                    : `${productImages.length} image${
+                        productImages.length > 1 ? "s" : ""
+                      } uploaded`}
                 </h1>
               </div>
 
@@ -901,10 +901,11 @@ const ProductListing = () => {
                 <button
                   type="submit"
                   disabled={loading || !isFormValid}
-                  className={`${loading || !isFormValid
+                  className={`${
+                    loading || !isFormValid
                       ? "opacity-50 cursor-not-allowed bg-stone-900 text-white rounded-md md:py-3 py-3 lg:w-[83.5vw] xl:w-[26vw] w-[85vw] font-medium text-sm lg:text-base  dark:bg-[#F1F1F1] dark:text-[#1A1D20] md:mt-3 md:text-base md:w-[88vw]"
                       : "bg-stone-900 text-white rounded-md md:py-3 py-3 lg:w-[83.5vw] xl:w-[26vw] w-[85vw] font-medium text-sm lg:text-base  dark:bg-[#F1F1F1] dark:text-[#1A1D20] md:mt-3 md:text-base md:w-[88vw]"
-                    }`}
+                  }`}
                 >
                   {loading ? "Listing..." : "List my Product"}
                 </button>

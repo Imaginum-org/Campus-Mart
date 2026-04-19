@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "../Components/Header";
 import { IoMdShareAlt } from "react-icons/io";
 import { EllipsisVertical, IndianRupee } from "lucide-react";
@@ -7,19 +7,34 @@ import { Link, useNavigate } from "react-router-dom";
 import { MessageSquareMore } from "lucide-react";
 import { FaRegHeart } from "react-icons/fa";
 import { AnimatePresence, motion } from "framer-motion";
+import { useParams } from "react-router-dom";
+import api from "../Utils/api";
 
 const ProductDescription = () => {
   const [report, setReport] = useState(false);
   const [wishlish, setWishlish] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const { id } = useParams();
 
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const images = ["/assets/pro_desc.png", "/assets/image10.png"];
+  const images =
+    product?.images && product.images.length > 0
+      ? product.images
+      : ["/assets/image10.png"];
 
-  const [activeImage, setActiveImage] = useState(images[0]);
+  const [activeImage, setActiveImage] = useState("");
 
-  const productUrl = window.location.href;
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
+  useEffect(() => {
+    if (product?.images?.length > 0) {
+      setActiveImage(product.images[0]);
+    }
+  }, [product]);
 
   const handleReport = () => {
     setReport((prev) => !prev);
@@ -48,8 +63,34 @@ const ProductDescription = () => {
     }
   };
 
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+
+        const res = await api.get(`/api/product/${id}`);
+
+        setProduct(res.data.data);
+      } catch (error) {
+        console.error("Product fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) fetchProduct();
+  }, [id]);
+
+  if (loading) {
+    return <div className="p-10 text-center">Loading...</div>;
+  }
+
+  if (!product) {
+    return <div className="p-10 text-center">Product not found</div>;
+  }
+
   return (
-    <div className="w-full h-screen">
+    <div className="w-full min-h-screen">
       <Header bagUrl={"bag.png"} darkUrl={"/bluebag.png"} />
       <div className="flex flex-col w-full xl:flex-row 2xl:min-h-screen dark:bg-[#131313] xl:pt-2">
         <Toaster
@@ -120,15 +161,14 @@ const ProductDescription = () => {
                 alt="Seller"
               />
               <h1 className="font-semibold font-robotoFlex dark:text-[#848484]">
-                Aryan Singh
+                {product.seller_id?.name}
               </h1>
             </div>
 
             <div className="flex flex-col pt-1">
               <div className="pl-1 leading-tight">
                 <h1 className="text-[#979797] font-medium font-robotoFlex dark:text-[#979797]">
-                  404 - P Block, Men's Hostel , VIT Vellore , Katpadi Vellore -
-                  632014
+                  {product.pickup_address_snapshot?.address_line}
                 </h1>
               </div>
 
@@ -145,7 +185,7 @@ const ProductDescription = () => {
           <div className="flex flex-col rounded-2xl shadow-lg shadow-slate-200 border pl-6 pr-6 pb-6 pt-5 w-full xl:pl-12 dark:shadow-none dark:border-0 dark:bg-[#1A1D20]">
             <div className="flex justify-between items-center pr-4">
               <div className=" text-blue-600/80 bg-zinc-100 rounded-md w-28 md:w-36 md:py-2 py-[1vh] flex justify-center items-center font-semibold md:text-base text-sm font-robotoFlex dark:bg-[#131313] dark:text-[#BBC2C9]">
-                Electronics
+                {product.category}
               </div>
 
               {/* Animated report dropdown */}
@@ -189,16 +229,16 @@ const ProductDescription = () => {
             {/* Product text content */}
             <div className="flex flex-col">
               <h1 className="text-[5.5vw] text-neutral-900 font-bold mt-5 md:text-[3vw] lg:text-[2.7vw] xl:text-[1.8vw] font-robotoFlex dark:text-white">
-                Portonics Wireless Earbuds
+                {product.title}
               </h1>
               <div className="text-[8vw] flex items-center mt-1 md:text-[5vw] lg:text-[3.8vw] xl:text-[2.8vw]">
                 <IndianRupee className="size-6 dark:text-white" />
                 <h1 className="text-neutral-900 font-tiltWarp dark:text-white">
-                  449
+                  {product.selling_price}
                 </h1>
                 <div className="text-zinc-600 flex items-center text-xl md:text-2xl justify-end ml-3 mt-3 font-normal line-through font-poppins leading-none dark:text-[#626262]">
                   <IndianRupee className="size-4" />
-                  <h1>599</h1>
+                  {product.original_price && <h1>{product.original_price}</h1>}
                 </div>
               </div>
 
@@ -206,11 +246,8 @@ const ProductDescription = () => {
                 Product Details
               </h1>
               <p className="text-[#848484] xl:mr-20 font-poppins leading-5 dark:text-[#848484]">
-                A wireless mouse is a convenient input device that connects to a
-                computer without the need for physical cables, typically using
-                Bluetooth or a USB receiver. A wireless mouse is a convenient
-                input device that connects to a computer without the need for
-                physical cables, <button className="text-black">more</button>
+                {product.description}{" "}
+                <button className="text-black">more</button>
               </p>
             </div>
 
@@ -222,10 +259,10 @@ const ProductDescription = () => {
                 </h1>
                 <div className="flex flex-col gap-2">
                   <div className="bg-gradient-to-r from-indigo-600 to-indigo-600 rounded-md text-white w-48 py-2 flex px-4 items-center font-medium text-sm md:w-52 md:text-base xl:py-3 xl:w-64 font-robotoFlex lg:px-6">
-                    Like New
+                    {product.condition}
                   </div>
                   <div className="bg-[#09C712] rounded-md text-white w-48 py-2 flex px-3 items-center font-medium text-sm md:w-52 md:text-base xl:py-3 xl:w-64 font-robotoFlex lg:px-6">
-                    Price Negotiable : Yes
+                    Price Negotiable : {product.is_negotiable ? "Yes" : "No"}
                   </div>
                 </div>
               </div>
@@ -235,10 +272,10 @@ const ProductDescription = () => {
                 </h1>
                 <div className="flex flex-col gap-3">
                   <div className="bg-gradient-to-r from-indigo-600 to-indigo-600 rounded-md text-white w-48 py-2 flex px-4 items-center font-medium text-sm md:w-52 md:text-base xl:py-3 xl:w-64 font-robotoFlex lg:px-6">
-                    6 Months
+                    {product.attributes?.usage_duration || "N/A"}
                   </div>
                   <div className="bg-[#09C712] rounded-md text-white w-48 py-2 flex px-3 items-center font-medium text-sm md:w-52 md:text-base xl:py-3 xl:w-64 font-robotoFlex lg:px-6">
-                    Color
+                    {product.attributes?.color || "N/A"}
                   </div>
                 </div>
               </div>
@@ -254,15 +291,14 @@ const ProductDescription = () => {
                   Payment Mode (Cash/UPI):
                 </h1>
                 <div className="bg-white border border-gray-200 px-5 py-2 xl:px-8 rounded text-sm font-robotoFlex dark:bg-[#131313] dark:border-0 dark:text-white">
-                  UPI
+                  {product.payment_preference}
                 </div>
               </div>
               <h1 className="text-[#848484] mt-2 text-sm md:text-base font-robotoFlex dark:text-[#848484]">
                 Pickup Location
               </h1>
               <p className="w-52 text-[#2D3339] font-medium text-sm leading-5 xl:leading-5 md:leading-7 md:text-base md:w-64 font-robotoFlex dark:text-[#848484]">
-                526 - K Block Men's Hostel, VIT Vellore Available: Mon-Fri,
-                9AM-6PM
+                {product.pickup_address_snapshot?.address_line}
               </p>
             </div>
           </div>
@@ -277,7 +313,7 @@ const ProductDescription = () => {
               Add to Wishlist
             </div>
             <Link
-              to={"/chat"}
+              to={`/chat?seller=${product.seller_id?._id}`}
               className="bg-gradient-to-r from-indigo-600 to-blue-600 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.17)] rounded-md text-white w-full py-3 flex justify-center items-center font-semibold gap-1 text-sm md:text-base"
             >
               <MessageSquareMore className="pt-1 size-6 block font-robotoFlex" />
@@ -296,14 +332,15 @@ const ProductDescription = () => {
                 src="/assets/user_img.png"
                 alt="Seller"
               />
-              <h1 className="font-semibold dark:text-[#848484]">Aryan Singh</h1>
+              <h1 className="font-semibold dark:text-[#848484]">
+                {product.seller_id?.name}
+              </h1>
             </div>
 
             <div className="flex flex-col pt-1">
               <div className="leading-tight">
                 <h1 className="text-[#979797] dark:text-[#979797] text-sm md:text-base">
-                  404 - P Block, Men's Hostel , VIT Vellore , Katpadi Vellore -
-                  632014
+                  {product.pickup_address_snapshot?.address_line}
                 </h1>
               </div>
 

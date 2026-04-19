@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Category from "../Components/Category";
 import ProductCard from "../Components/ProductCard";
 import Header from "../Components/Header";
@@ -12,11 +12,12 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/scrollbar";
-import { IoIosArrowDown } from "react-icons/io";
+// import { IoIosArrowDown } from "react-icons/io";
 import { CiSearch } from "react-icons/ci";
 import bannerRight from "/bannerRight.png";
 import { Autoplay } from "swiper/modules";
 import { useRef } from "react";
+import api from "../Utils/api.js";
 
 const Home = () => {
   const sliderRef = useRef(null);
@@ -26,6 +27,7 @@ const Home = () => {
   let isDragging = false;
 
   const onMouseDown = (e) => {
+    if (!sliderRef.current) return;
     isDown = true;
     isDragging = false;
     sliderRef.current.classList.add("active");
@@ -34,11 +36,13 @@ const Home = () => {
   };
 
   const onMouseLeave = () => {
+    if (!sliderRef.current) return;
     isDown = false;
     sliderRef.current.classList.remove("active");
   };
 
   const onMouseUp = (e) => {
+    if (!sliderRef.current) return;
     isDown = false;
     sliderRef.current.classList.remove("active");
 
@@ -49,6 +53,7 @@ const Home = () => {
   };
 
   const onMouseMove = (e) => {
+    if (!sliderRef.current) return;
     if (!isDown) return;
     e.preventDefault();
     const x = e.pageX - sliderRef.current.offsetLeft;
@@ -58,6 +63,88 @@ const Home = () => {
   };
 
   const [search, setSearch] = useState("");
+  const [products, setProducts] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState(null);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  const fetchProducts = async (pageNumber = 1) => {
+    if (loading || !hasMore) return;
+
+    try {
+      setLoading(true);
+      if (pageNumber === 1) setInitialLoading(true);
+
+      const res = await api.get("/api/product", {
+        params: {
+          page: pageNumber,
+          limit: 10,
+        },
+      });
+
+      const newProducts = Array.isArray(res.data?.data) ? res.data.data : [];
+      const pagination = res.data?.pagination || {};
+
+      // REMOVE DUPLICATES (IMPORTANT)
+      setProducts((prev) => {
+        const existingIds = new Set(prev.map((p) => p._id));
+        const filtered = newProducts.filter((p) => !existingIds.has(p._id));
+
+        if (filtered.length === 0) return prev;
+
+        return [...prev, ...filtered];
+      });
+
+      // CHECK IF MORE DATA EXISTS
+      if (!pagination.totalPages || pageNumber >= pagination.totalPages) {
+        setHasMore(false);
+      }
+
+      setPage(pageNumber);
+    } catch (error) {
+      console.error(error);
+      setError("Failed to load products");
+    } finally {
+      setLoading(false);
+      setInitialLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts(1);
+  }, []);
+
+  const observerRef = useRef();
+
+  const lastProductRef = useCallback(
+    (node) => {
+      if (loading || !hasMore) return;
+
+      if (observerRef.current) observerRef.current.disconnect();
+
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          setPage((prevPage) => {
+            const nextPage = prevPage + 1;
+            fetchProducts(nextPage);
+            return nextPage;
+          });
+        }
+      });
+
+      if (node) observerRef.current.observe(node);
+    },
+    [loading, hasMore],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (observerRef.current) observerRef.current.disconnect();
+    };
+  }, []);
+
   const placeholderWords = [
     "Electronics",
     "Book",
@@ -82,7 +169,7 @@ const Home = () => {
     }, 2500);
     return () => clearInterval(interval);
   }, []);
-  
+
   return (
     <motion.div className="w-full bg-white dark:bg-[#131313] relative">
       <Header bagUrl={"/bag.webp"} darkUrl={"/bluebag.png"} />
@@ -215,7 +302,7 @@ const Home = () => {
                 <motion.div className="text-white w-1/2">
                   <h1 className="lg:text-[2.5vw] xl:text-[2.2vw] md:text-[2.7vw] text-[0.85rem] font-bold leading-tight font-figtree">
                     Find What You Need, <br />
-                    Sell What You Don't!
+                    Sell What You Dont!
                   </h1>
                   <p className="hidden md:block lg:text-[1.7vw] xl:text-[1.4vw] md:text-[2vw] text-[0.7rem] lg:leading-7 md:leading-5  text-gray-200 font-medium mt-2 font-figtree">
                     The perfect place to buy, sell, and discover
@@ -385,29 +472,56 @@ const Home = () => {
             Popular Products
           </h1>
           <div className="w-full flex flex-wrap lg:shrink-0 mt-1 lg:gap-4 xl:gap-6 md:gap-3 gap-1">
-            <ProductCard path="/assets/pro_desc.png" />
-            <ProductCard />
-            <ProductCard />
-            <ProductCard path="/assets/pro_desc.png" />
-            <ProductCard />
-            <ProductCard path="/assets/pro_desc.png" />
-            <ProductCard />
-            <ProductCard path="/assets/pro_desc.png" />
-            <ProductCard />
-            <ProductCard path="/assets/pro_desc.png" />
-            <ProductCard />
-            <ProductCard />
-            <ProductCard />
-            <ProductCard path="/assets/pro_desc.png" />
+            {/* EMPTY STATE */}
+            {!initialLoading && products.length === 0 && (
+              <div className="w-full text-center mt-10 text-gray-500">
+                No products listed yet
+              </div>
+            )}
+            {products.map((product, index) => {
+              const isLast = products.length === index + 1;
+              return (
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  ref={isLast ? lastProductRef : null}
+                />
+              );
+            })}
+
+            {error && (
+              <p className="w-full text-center text-red-500 mt-4">{error}</p>
+            )}
           </div>
+
+          {loading && (
+            <p className="w-full text-center mt-4 text-gray-500">
+              Loading more products...
+            </p>
+          )}
+
+          {!hasMore && products.length > 0 && (
+            <p className="w-full text-center mt-4 text-gray-400">
+              No more products
+            </p>
+          )}
         </div>
       </div>
 
-      {/* More section */}
+      {/* More section
       <div className="w-full lg:text-[1.1vw] text-sm flex justify-center items-center lg:p-10 p-6 font-semibold font-poppins dark:text-white">
         <button>More</button>
         <IoIosArrowDown className="size-4" />
-      </div>
+      </div> */}
+
+      {/* {hasMore && !loading && (
+        <button
+          onClick={() => fetchProducts(page + 1)}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          Load More
+        </button>
+      )} */}
 
       <Footer />
     </motion.div>
