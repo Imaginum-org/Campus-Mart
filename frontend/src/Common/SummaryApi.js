@@ -1,5 +1,5 @@
 
-export const baseURL = "http://localhost:5000"; 
+export const baseURL = import.meta.env.VITE_API_BASE_URL ; 
 
 const SummaryApi = { 
     register: {
