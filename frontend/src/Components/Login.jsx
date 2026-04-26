@@ -17,17 +17,17 @@ function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { setIsLoggedIn, fetchUserProfile } = useUser();
+  const { fetchUserProfile } = useUser();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("oauth") === "success" || params.get("auth") === "success") {
       localStorage.setItem("isAuthenticated", "true");
-      setIsLoggedIn(true);
+      fetchUserProfile();
       fetchUserProfile();
       navigate("/");
     }
-  }, [location.search, navigate, setIsLoggedIn, fetchUserProfile]);
+  }, [location.search, navigate, fetchUserProfile]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -47,21 +47,23 @@ function Login() {
       if (response.data.success) {
         toast.success(response.data.message || "Logged in successfully!");
         localStorage.setItem("isAuthenticated", "true");
-        setIsLoggedIn(true);
+        await fetchUserProfile();
         fetchUserProfile();
-        navigate("/"); 
+        navigate("/");
       }
     } catch (error) {
-       if (error.response?.data?.requiresVerification) {
+      if (error.response?.data?.requiresVerification) {
         toast.error("Please verify your email first. Redirecting...");
-        
-         setTimeout(() => {
+
+        setTimeout(() => {
           navigate("/checkEmail", { state: { email: email } });
         }, 1500);
-        
-        return; 
+
+        return;
       }
-      const errorMessage = error.response?.data?.message || "An error occurred connecting to the server.";
+      const errorMessage =
+        error.response?.data?.message ||
+        "An error occurred connecting to the server.";
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -82,10 +84,27 @@ function Login() {
           className="flex items-center justify-center mt-[6vh] xl:mt-[8vh]"
         >
           {/* SVG Logo kept intact */}
-          <svg className="mb-[0.4vh]" width="20" height="20" viewBox="0 0 27 26" fill="none">
-            <path d="M18.05 8.79119C18.05 11.3414 15.5629 13.4088 13.0126 13.4088C10.4624 13.4088 7.9752 11.3414 7.9752 8.79119C7.9752 6.24094 5.42505 3.33398 7.9753 3.33398C10.5256 3.33398 18.05 6.24094 18.05 8.79119Z" stroke="#4D4EF2" strokeWidth="1.67914" />
-            <path d="M19.1842 9.63082C19.1842 12.1811 16.6971 14.2485 14.1468 14.2485C11.5965 14.2485 9.10938 12.1811 9.10938 9.63082C9.10938 7.08056 15.0807 1.23511 17.6309 1.23511C20.1812 1.23511 19.1842 7.08056 19.1842 9.63082Z" stroke="#534FF2" strokeWidth="1.67914" />
-            <path d="M4.12511 10.2522C4.41527 9.14425 5.41637 8.37158 6.56164 8.37158H19.7557C20.8938 8.37158 21.8905 9.13479 22.1872 10.2335L25.5888 22.8271C26.0212 24.4279 24.8154 26.0026 23.1572 26.0026H3.26333C1.6131 26.0026 0.408693 24.4421 0.826795 22.8457L4.12511 10.2522Z" fill="#394FF1" />
+          <svg
+            className="mb-[0.4vh]"
+            width="20"
+            height="20"
+            viewBox="0 0 27 26"
+            fill="none"
+          >
+            <path
+              d="M18.05 8.79119C18.05 11.3414 15.5629 13.4088 13.0126 13.4088C10.4624 13.4088 7.9752 11.3414 7.9752 8.79119C7.9752 6.24094 5.42505 3.33398 7.9753 3.33398C10.5256 3.33398 18.05 6.24094 18.05 8.79119Z"
+              stroke="#4D4EF2"
+              strokeWidth="1.67914"
+            />
+            <path
+              d="M19.1842 9.63082C19.1842 12.1811 16.6971 14.2485 14.1468 14.2485C11.5965 14.2485 9.10938 12.1811 9.10938 9.63082C9.10938 7.08056 15.0807 1.23511 17.6309 1.23511C20.1812 1.23511 19.1842 7.08056 19.1842 9.63082Z"
+              stroke="#534FF2"
+              strokeWidth="1.67914"
+            />
+            <path
+              d="M4.12511 10.2522C4.41527 9.14425 5.41637 8.37158 6.56164 8.37158H19.7557C20.8938 8.37158 21.8905 9.13479 22.1872 10.2335L25.5888 22.8271C26.0212 24.4279 24.8154 26.0026 23.1572 26.0026H3.26333C1.6131 26.0026 0.408693 24.4421 0.826795 22.8457L4.12511 10.2522Z"
+              fill="#394FF1"
+            />
           </svg>
           <span className="text-[#012436] dark:text-[#FFFFFF] text-[18px] lg:text-[1.5rem] xl:text-[1.45rem] font-poppins font-semibold ml-[0.3vw]">
             Campus Mart
@@ -206,7 +225,6 @@ function Login() {
       </div>
       {/* RIGHT SECTION */}
       <AuthPageRightPart />
-
     </div>
   );
 }

@@ -402,7 +402,7 @@ const ProductListing = () => {
           maxToasts: 1,
         }}
       />
-      <Header bagUrl={"bag.png"} darkUrl={"/bluebag.png"} />
+      {/* <Header bagUrl={"bag.png"} darkUrl={"/bluebag.png"} /> */}
       {/* start */}
       <div className="flex flex-col dark:bg-[#131313] md:pt-3 xl:pt-1">
         {/* top section */}

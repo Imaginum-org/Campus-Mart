@@ -1,16 +1,21 @@
+import React from "react";
 import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+
 import "./index.css";
 import App from "./App.jsx";
-import { BrowserRouter } from "react-router-dom";
+
 import { ThemeProvider } from "./Components/ThemeContext.jsx";
 import { UserProvider } from "./Hooks/useUserContext.jsx";
 
 createRoot(document.getElementById("root")).render(
-  <BrowserRouter>
-    <UserProvider>
+  <React.StrictMode>
+    <BrowserRouter>
       <ThemeProvider>
-        <App />
+        <UserProvider>
+          <App />
+        </UserProvider>
       </ThemeProvider>
-    </UserProvider>
-  </BrowserRouter>,
+    </BrowserRouter>
+  </React.StrictMode>,
 );

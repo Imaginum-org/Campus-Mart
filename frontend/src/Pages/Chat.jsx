@@ -50,7 +50,7 @@ const Chat = () => {
   const [chatInput, setChatInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isDark, setIsDark] = useState(
-    document.documentElement.classList.contains("dark")
+    document.documentElement.classList.contains("dark"),
   );
   const messagesEndRef = useRef(null);
 
@@ -118,7 +118,7 @@ const Chat = () => {
       supportChat.id,
       "Did that resolve your issue? If not, you can talk to a human representative.",
       "support",
-      { isQueryEnd: true }
+      { isQueryEnd: true },
     );
   };
 

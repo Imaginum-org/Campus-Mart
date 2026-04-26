@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 import axios from "axios";
 import { baseURL } from "../Common/SummaryApi";
 import SummaryApi from "../Common/SummaryApi";
@@ -8,35 +15,40 @@ const UserContext = createContext();
 export const UserProvider = ({ children }) => {
   const [userDetails, setUserDetails] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // start true
+  const hasFetchedRef = useRef(false); // prevents multiple API calls
 
-  // Initialize user from localStorage cache
   useEffect(() => {
-    const cachedUser = localStorage.getItem("cachedUserDetails");
-    if (cachedUser) {
-      try {
-        setUserDetails(JSON.parse(cachedUser));
-      } catch (err) {
-        console.error("Error parsing cached user:", err);
-      }
-    }
+    try {
+      const cachedUser = localStorage.getItem("cachedUserDetails");
+      const authStatus = localStorage.getItem("isAuthenticated");
 
-    const authStatus = localStorage.getItem("isAuthenticated");
-    if (authStatus === "true") {
-      setIsLoggedIn(true);
+      if (cachedUser) {
+        setUserDetails(JSON.parse(cachedUser));
+      }
+
+      if (authStatus === "true") {
+        setIsLoggedIn(true);
+      }
+    } catch (err) {
+      console.error("Error reading cache:", err);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  // Fetch user profile
   const fetchUserProfile = useCallback(async () => {
-    try {
-      const authStatus = localStorage.getItem("isAuthenticated");
-      if (!authStatus || authStatus !== "true") {
-        setLoading(false);
-        return;
-      }
+    // Prevent duplicate calls
+    if (hasFetchedRef.current) return;
 
+    const authStatus = localStorage.getItem("isAuthenticated");
+    if (!authStatus || authStatus !== "true") return;
+
+    hasFetchedRef.current = true;
+
+    try {
       setLoading(true);
+
       const response = await axios({
         method: SummaryApi.userProfile.method,
         url: `${baseURL}${SummaryApi.userProfile.url}`,
@@ -44,42 +56,50 @@ export const UserProvider = ({ children }) => {
       });
 
       if (response.data.success) {
-        setUserDetails(response.data.user);
+        const user = response.data.user;
+
+        setUserDetails(user);
         setIsLoggedIn(true);
-        // Cache user details in localStorage
-        localStorage.setItem(
-          "cachedUserDetails",
-          JSON.stringify(response.data.user)
-        );
+
+        // cache
+        localStorage.setItem("cachedUserDetails", JSON.stringify(user));
+        localStorage.setItem("isAuthenticated", "true");
       }
     } catch (error) {
       if (error.response?.status === 401) {
-        localStorage.removeItem("isAuthenticated");
-        localStorage.removeItem("cachedUserDetails");
-        setIsLoggedIn(false);
-        setUserDetails(null);
+        clearUserData();
       }
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Update specific user fields without full refetch
   const updateUserDetails = useCallback((updatedFields) => {
     setUserDetails((prev) => {
+      if (!prev) return prev;
+
       const updated = { ...prev, ...updatedFields };
+
       localStorage.setItem("cachedUserDetails", JSON.stringify(updated));
+
       return updated;
     });
   }, []);
 
-  // Clear user data on logout
   const clearUserData = useCallback(() => {
     setUserDetails(null);
     setIsLoggedIn(false);
+    hasFetchedRef.current = false;
+
     localStorage.removeItem("cachedUserDetails");
     localStorage.removeItem("isAuthenticated");
   }, []);
+
+  useEffect(() => {
+    if (isLoggedIn && !userDetails) {
+      fetchUserProfile();
+    }
+  }, [isLoggedIn, userDetails, fetchUserProfile]);
 
   return (
     <UserContext.Provider
@@ -87,8 +107,6 @@ export const UserProvider = ({ children }) => {
         userDetails,
         isLoggedIn,
         loading,
-        setUserDetails,
-        setIsLoggedIn,
         fetchUserProfile,
         updateUserDetails,
         clearUserData,

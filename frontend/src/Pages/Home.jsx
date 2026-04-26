@@ -172,7 +172,7 @@ const Home = () => {
 
   return (
     <motion.div className="w-full bg-white dark:bg-[#131313] relative">
-      <Header bagUrl={"/bag.webp"} darkUrl={"/bluebag.png"} />
+      {/* <Header bagUrl={"/bag.webp"} darkUrl={"/bluebag.png"} /> */}
       {/* search bar */}
       <div className="flex items-center bg-white rounded-md pr-2 shadow-md outline outline-2 outline-neutral-200 hover:shadow-md transition ease-in-out duration-200 sm:hidden mr-5 ml-5 mt-2 font-poppins dark:bg-[#1A1D20] dark:outline-1 dark:outline-neutral-400">
         <input

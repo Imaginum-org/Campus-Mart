@@ -60,7 +60,7 @@ function Myorders() {
 
   return (
     <div className="h-screen w-full dark:bg-[#131313] flex flex-col">
-      <Header bagUrl={bag} darkUrl={bluebag} />
+      {/* <Header bagUrl={bag} darkUrl={bluebag} /> */}
 
       <div className="flex-1 lg:flex md:flex overflow-hidden">
         <div className="hidden md:block md:w-[37%] lg:w-[28%] xl:w-[26%] pt-[3.5vh] pl-[2vw] pr-[1.75vw] pb-[2vh] bg-[#FBFBFB] dark:bg-[#131313] xl:pt-[2.5vh] xl:-mr-4 xl:pb-0">

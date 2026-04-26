@@ -91,7 +91,7 @@ const ProductDescription = () => {
 
   return (
     <div className="w-full min-h-screen">
-      <Header bagUrl={"bag.png"} darkUrl={"/bluebag.png"} />
+      {/* <Header bagUrl={"bag.png"} darkUrl={"/bluebag.png"} /> */}
       <div className="flex flex-col w-full xl:flex-row 2xl:min-h-screen dark:bg-[#131313] xl:pt-2">
         <Toaster
           position="top-center"

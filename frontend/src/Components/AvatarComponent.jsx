@@ -1,63 +1,54 @@
 import React, { useMemo, useState, useEffect } from "react";
 
-const AvatarComponent = ({ name, imageUrl, size = "large", className = "", isLoading = false }) => {
+const AvatarComponent = ({
+  name,
+  imageUrl,
+  size = "large",
+  className = "",
+  isLoading = false,
+}) => {
   const [imageLoadError, setImageLoadError] = useState(false);
+  const [loaded, setLoaded] = useState(true); // ✅ start true to prevent flicker
+  const [cachedImage, setCachedImage] = useState(imageUrl);
 
+  // Cache image to avoid reload flicker
   useEffect(() => {
-    setImageLoadError(false);
+    if (imageUrl) {
+      setCachedImage(imageUrl);
+      setImageLoadError(false);
+      setLoaded(true); // keep visible (no fade reset)
+    }
   }, [imageUrl]);
 
   const generateInitials = (fullName) => {
     if (!fullName) return "?";
     const nameArray = fullName.trim().split(" ");
+
     if (nameArray.length === 1) {
       return nameArray[0].substring(0, 2).toUpperCase();
     }
-    return (
-      nameArray[0][0] + nameArray[nameArray.length - 1][0]
-    ).toUpperCase();
+
+    return (nameArray[0][0] + nameArray[nameArray.length - 1][0]).toUpperCase();
   };
 
   const stringToColor = (string) => {
-    if (!string) return "#364EF2"; 
+    if (!string) return "#364EF2";
 
     let hash = 0;
-    for (let i = 0; i < string.length; i += 1) {
+    for (let i = 0; i < string.length; i++) {
       hash = string.charCodeAt(i) + ((hash << 5) - hash);
     }
+
     let color = "#";
-    for (let i = 0; i < 3; i += 1) {
+    for (let i = 0; i < 3; i++) {
       const value = (hash >> (i * 8)) & 0xff;
       color += `00${value.toString(16)}`.slice(-2);
     }
+
     return color;
   };
 
-  const isDefaultPlaceholderImage = (url) => {
-    if (!url || typeof url !== "string") return false;
-    const normalized = url.toLowerCase();
-
-    // These are social provider images - treat as valid, not defaults
-    if (normalized.includes("googleusercontent.com") || 
-        normalized.includes("gravatar.com") || 
-        normalized.includes("facebook.com")) {
-      return false;
-    }
-
-    // Explicitly check for our default avatar URLs
-    const defaultAvatarPatterns = [
-      "avatar-default.svg",
-      "default-avatar.svg",
-      "/avatar-default",
-      "/default-avatar",
-      "ik.imagekit.io/mspoxwn8v/avatar-default",
-    ];
-
-    return defaultAvatarPatterns.some(pattern => normalized.includes(pattern));
-  };
-
   const initials = useMemo(() => generateInitials(name), [name]);
-  
   const backgroundColor = useMemo(() => stringToColor(name), [name]);
 
   const sizeStyles = {
@@ -69,43 +60,41 @@ const AvatarComponent = ({ name, imageUrl, size = "large", className = "", isLoa
 
   const currentSize = sizeStyles[size] || sizeStyles.large;
 
-  // Show skeleton while loading
   if (isLoading) {
     return (
       <div
-        className={`${currentSize.container} rounded-full animate-pulse bg-gray-300 dark:bg-gray-600 ${className}`}
+        className={`${currentSize.container} rounded-full animate-pulse bg-gray-300 ${className}`}
       />
     );
   }
 
   const hasValidImage =
-    imageUrl &&
-    typeof imageUrl === "string" &&
-    imageUrl.trim().length > 0 &&
-    !imageLoadError &&
-    !isDefaultPlaceholderImage(imageUrl);
+    typeof cachedImage === "string" &&
+    cachedImage.trim().length > 0 &&
+    !imageLoadError;
 
   if (hasValidImage) {
     return (
       <img
-        src={imageUrl}
+        src={cachedImage}
         alt={name || "Avatar"}
         className={`${currentSize.container} rounded-full object-cover ${className}`}
+        referrerPolicy="no-referrer"
+        loading="eager" // prevent reload delay
+        decoding="async"
         onError={() => setImageLoadError(true)}
       />
     );
   }
 
-  // If image failed to load, show default initials avatar
   return (
     <div
       className={`${currentSize.container} rounded-full flex items-center justify-center font-semibold text-white ${className}`}
       style={{ backgroundColor }}
-      title={name}
     >
       <span className={currentSize.text}>{initials}</span>
     </div>
   );
 };
 
-export default AvatarComponent;
+export default React.memo(AvatarComponent);

@@ -274,7 +274,7 @@ function Profile() {
   return (
     <>
       <div className="w-full h-screen overflow-hidden dark:bg-[#131313]">
-        <Header bagUrl={bag} darkUrl={bluebag} />
+        {/* <Header bagUrl={bag} darkUrl={bluebag} /> */}
 
         <div className="flex h-[calc(100vh-70px)]">
           {/* LEFT PANEL */}

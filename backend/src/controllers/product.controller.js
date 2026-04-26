@@ -75,3 +75,26 @@ export const getBoostedProducts = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getSearchSuggestions = async (req, res, next) => {
+  try {
+    const { q } = req.query;
+
+    // Prevent unnecessary DB calls
+    if (!q || q.trim().length < 2) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+      });
+    }
+
+    const suggestions = await productService.getSearchSuggestions(q);
+
+    return res.status(200).json({
+      success: true,
+      data: suggestions,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

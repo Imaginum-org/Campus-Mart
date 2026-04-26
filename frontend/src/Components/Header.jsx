@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CiSearch } from "react-icons/ci";
 import { Link, useNavigate } from "react-router-dom";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { IoIosSunny, IoMdMoon } from "react-icons/io";
-import { MdShoppingCart } from "react-icons/md";
 import { FiMessageSquare } from "react-icons/fi";
-import LoggedImage from "/LoggedImage.png";
 import AvatarComponent from "./AvatarComponent";
 import { IoIosAddCircleOutline } from "react-icons/io";
 import { LuUserRound } from "react-icons/lu";
@@ -14,16 +12,17 @@ import { IoIosHeartEmpty } from "react-icons/io";
 import { CiMail } from "react-icons/ci";
 import { MdOutlineLogout } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
-import axios  from "axios";
+import axios from "axios";
 import { IoChevronBackOutline } from "react-icons/io5";
 import { toast } from "react-hot-toast";
-import  SummaryApi  from "../Common/SummaryApi";
+import SummaryApi from "../Common/SummaryApi";
 import { baseURL } from "../Common/SummaryApi";
 import { useUser } from "../Hooks/useUserContext.jsx";
 
 const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
-  const { userDetails, isLoggedIn, loading, fetchUserProfile, clearUserData } = useUser();
-  
+  const { userDetails, isLoggedIn, loading, fetchUserProfile, clearUserData } =
+    useUser();
+
   const [search, setSearch] = useState("");
   const [darkMode, setDarkMode] = useState(false);
   const [notification, setNotification] = useState(1);
@@ -32,7 +31,7 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
   const [fade, setFade] = useState(true);
   const menuRef = useRef(null);
   const navigate = useNavigate();
-  
+
   const placeholderWords = [
     "Electronics",
     "Book",
@@ -72,7 +71,6 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, [showmenu]);
- 
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -118,20 +116,19 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
     }
   }, [isLoggedIn, fetchUserProfile]);
 
-
   const handleLogoutClick = async () => {
     try {
-      const response =await axios({
-         method : SummaryApi.logoutUser.method,
-          url : `${baseURL}${SummaryApi.logoutUser.url}`,
-          withCredentials : true
-      })
-     
-      if(response.data.success){
+      const response = await axios({
+        method: SummaryApi.logoutUser.method,
+        url: `${baseURL}${SummaryApi.logoutUser.url}`,
+        withCredentials: true,
+      });
+
+      if (response.data.success) {
         clearUserData();
         setShowmenu(false);
         toast.success("Logged out successfully");
-        navigate("/login");
+        navigate("/");
       }
     } catch (err) {
       console.error("Logout error:", err);
@@ -160,9 +157,9 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
 
         <div className="flex items-center gap-1 font-semibold">
           {darkMode ? (
-            <img src={darkUrl} className="size-4" alt="logo" />
+            <img src="/logo.png" className="size-4" alt="logo" />
           ) : (
-            <img src={bagUrl} className="size-4" alt="logo" />
+            <img src="/logo.png" className="size-4" alt="logo" />
           )}
           <Link to="/" className="dark:text-white text-lg">
             Campus Mart
@@ -359,13 +356,13 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
           <div className="hidden items-center font-semibold text-lg gap-[0.4vw] md:text-base sm:flex lg:text-[1.7vw] xl:text-[1.4vw] font-poppins md:gap-[0.8vw] xl:gap-[0.5vw] dark:text-white">
             {darkMode ? (
               <img
-                src={darkUrl}
+                src="/logo.png"
                 className="size-3 lg:size-4 xl:size-5"
                 alt="logo"
               />
             ) : (
               <img
-                src={bagUrl}
+                src="/logo.png"
                 className="size-3 lg:size-4 xl:size-5"
                 alt="logo"
               />
@@ -472,12 +469,12 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
           <div className="hidden items-center font-semibold text-lg gap-[0.4vw] md:text-base sm:flex lg:text-lg xl:text-[1.4vw] font-poppins md:gap-[0.8vw] lg:gap-[0.8vw] xl:gap-[0.5vw] dark:text-white">
             {darkMode ? (
               <img
-                src={darkUrl}
+                src="/logo.png"
                 className="size-3 lg:size-4 xl:size-5"
                 alt="logo"
               />
             ) : (
-              <img src={bagUrl} className="size-3 lg:size-5" alt="logo" />
+              <img src="/logo.png" className="size-3 lg:size-5" alt="logo" />
             )}
             <Link
               to="/"

@@ -68,7 +68,7 @@ const PricingModel = () => {
         }}
       />
 
-      <Header bagUrl={bag} darkUrl={bluebag} />
+      {/* <Header bagUrl={bag} darkUrl={bluebag} /> */}
 
       {/* Decorative Image */}
       <img

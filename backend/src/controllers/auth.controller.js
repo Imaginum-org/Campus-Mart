@@ -241,9 +241,14 @@ export const googleAuthCallbackController = async (req, res) => {
     }
 
     const name = payload.name || email.split("@")[0];
-    const picture = payload.picture;
+
+    // High-quality image
+    const picture = payload.picture
+      ? payload.picture.replace("s96-c", "s400-c")
+      : null;
 
     let user = await userModel.findOne({ email }).select("+password");
+
     if (!user) {
       const randomPassword = crypto.randomBytes(32).toString("hex");
       const hashedPassword = await bcrypt.hash(randomPassword, 10);
@@ -252,18 +257,22 @@ export const googleAuthCallbackController = async (req, res) => {
         name,
         email,
         password: hashedPassword,
-        avatar:
-          picture || "https://ik.imagekit.io/mspoxwn8v/avatar-default.svg",
+        avatar: picture || undefined, // only store if exists
         is_email_verified: true,
         verifyTokenEmail: "",
       });
     } else {
-      // Always update avatar from Google if provided, even for existing users
-      if (picture) {
+      // ONLY update avatar if user has default / no avatar
+      if (
+        picture &&
+        (!user.avatar ||
+          user.avatar.includes("avatar-default") ||
+          user.avatar === "")
+      ) {
         user.avatar = picture;
       }
 
-      // Ensure email is verified for Google sign-in
+      // Ensure verified
       if (!user.is_email_verified) {
         user.is_email_verified = true;
       }

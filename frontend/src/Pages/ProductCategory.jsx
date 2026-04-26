@@ -162,7 +162,7 @@ const CategoryPage = () => {
 
   return (
     <div className="h-screen flex flex-col bg-[#F8F9FA] dark:bg-[#121212] overflow-hidden">
-      <Header bagUrl={bag} darkUrl={bluebag} />
+      {/* <Header bagUrl={bag} darkUrl={bluebag} /> */}
 
       <div className="flex flex-1 overflow-hidden px-4 lg:px-11">
         <aside className="hidden lg:block w-[340px] flex-shrink-0 my-6 rounded-3xl bg-white dark:bg-[#131313] px-8 py-9 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-zinc-100 dark:border-zinc-800/50 h-[calc(100vh-140px)] sticky top-6 self-start overflow-y-auto no-scrollbar">
