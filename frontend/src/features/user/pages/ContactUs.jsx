@@ -4,7 +4,7 @@ import { MdEmail } from "react-icons/md";
 import emailjs from "@emailjs/browser";
 import { Toaster } from "react-hot-toast";
 import { toast } from "react-hot-toast";
-import Loading from "../../../components/ui/ContactLoader.jsx";
+import Loading from "../../../Components/ui/ContactLoader.jsx";
 
 const faqs = [
   {

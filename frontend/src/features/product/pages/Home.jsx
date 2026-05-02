@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import Category from "../../../features/product/components/Category.jsx";
 import ProductCard from "../../../features/product/components/ProductCard.jsx";
-import Footer from "../../../components/layout/Footer.jsx";
+import Footer from "../../../Components/layout/Footer.jsx";
 
 import { getProducts } from "../api/productApi";
 

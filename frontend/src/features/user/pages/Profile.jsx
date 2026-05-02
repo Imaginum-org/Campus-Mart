@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import Loader from "../../../components/ui/Loader.jsx";
+import Loader from "../../../Components/ui/Loader.jsx";
 import Profile_left_part from "../components/Profile_left_part.jsx";
 import AlertDialogDemo from "../components/Deletebutton.jsx";
-import AvatarComponent from "../../../components/common/AvatarComponent.jsx";
+import AvatarComponent from "../../../Components/common/AvatarComponent.jsx";
 
 import { toast } from "react-hot-toast";
 import EditButton from "../components/editbutton.jsx";
@@ -10,7 +10,7 @@ import SecuritySettings from "../components/SecuritySettings.jsx";
 import AddressModal from "../components/AddressModal.jsx";
 import { Pencil, Trash2 } from "lucide-react";
 import { FiLogOut } from "react-icons/fi";
-import StatsPanel from "../../../components/ui/StatsPanel.jsx";
+import StatsPanel from "../../../Components/ui/StatsPanel.jsx";
 
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../../../context/useUserContext.jsx";

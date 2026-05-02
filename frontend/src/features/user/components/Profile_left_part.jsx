@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import AvatarComponent from "../../../components/common/AvatarComponent.jsx";
+import AvatarComponent from "../../../Components/common/AvatarComponent.jsx";
 import { useEffect } from "react";
 
 import { MdShoppingBag } from "react-icons/md";
@@ -14,7 +14,7 @@ import { FaHeart } from "react-icons/fa6";
 import { MdMail } from "react-icons/md";
 import { BsFillFileTextFill } from "react-icons/bs";
 
-import Loader from "../../../components/ui/Loader.jsx";
+import Loader from "../../../Components/ui/Loader.jsx";
 import { useUser } from "../../../context/useUserContext.jsx";
 
 function Profile_left_part() {

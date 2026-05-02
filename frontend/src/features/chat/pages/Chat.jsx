@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import Header from "../../../components/layout/Header.jsx";
+import Header from "../../../Components/layout/Header.jsx";
 import ChatUser from "../components/ChatUser";
 import userdp from "/userdp.png";
 

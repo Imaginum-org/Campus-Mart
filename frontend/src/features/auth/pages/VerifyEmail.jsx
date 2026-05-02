@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
 import axios from "../../../services/axiosInstance";
-import Loader from "../../../components/ui/Loader.jsx";
+import Loader from "../../../Components/ui/Loader.jsx";
 
 function VerifyEmail() {
   const [searchParams] = useSearchParams();
