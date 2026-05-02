@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useUser } from "../Hooks/useUserContext";
+import { useUser } from "../context/useUserContext.jsx";
 
 const ProtectedLayout = () => {
   const { userDetails, loading } = useUser();

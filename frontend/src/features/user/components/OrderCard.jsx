@@ -1,0 +1,105 @@
+const OrderCard = ({
+  orderId,
+  placedOn,
+  imageUrl,
+  name,
+  color,
+  attr,
+  status,
+  price,
+}) => {
+  const normalized = (status || "").toLowerCase().trim();
+
+  const statusClasses =
+    normalized === "delivered"
+      ? "bg-[#E6FFEB] text-[#008526]"
+      : normalized === "cancelled" || normalized === "canceled"
+        ? "bg-[#FFECEC] text-[#D12929]"
+        : "bg-[#E5E8FF] dark:bg-[#E5E8FF] text-[#534FF2] dark:text-[#534FF2]";
+
+  return (
+    <div className="bg-white dark:bg-[#1A1D20] rounded-[15px] lg:rounded-[20px] shadow-md overflow-hidden pl-[3.4vw] pr-[3.5vw] pt-[1.8vh] pb-[1.8vh] lg:px-[1.8vw] lg:py-[1.9vh] xl:py-8 font-poppins mb-6">
+      <div className="flex justify-between items-center">
+        <div className="text-[#2d3339] dark:text-[#F1F1F1] text-[13px] lg:text-lg lg:font-medium">
+          #Order id : {orderId}
+        </div>
+        <div className="text-[#646464] dark:text-[#D6D6D6] text-[12px] lg:text-[16px] font-light">
+          Placed on : {placedOn}
+        </div>
+      </div>
+
+      <div className="w-full h-[0px] border lg:border-1 border-[#ECEEFF] mt-[2vh] mb-[2.4vh] lg:my-[1.5vh] xl:my-[2vh]" />
+
+      <div className="lg:flex lg:justify-between lg:mt-[2vh] xl:mt-[3vh]">
+        <div className="flex ml-[4vw] lg:ml-[0vw]">
+          <img
+            className="w-[90px] h-[90px] lg:w-[88px] lg:h-[88px] rounded-[9.06px]"
+            src={imageUrl}
+            alt={name || "product image"}
+          />
+          <div className="flex flex-col ml-[4vw] lg:ml-[1.5vw] max-sm:mt-[1.2vh]">
+            <div className="text-[#2d3339] dark:text-[#F1F1F1] text-[15px] font-medium lg:text-[19px]">
+              {name}
+            </div>
+            <div className="text-[#64707d] dark:text-[#848484] text-[13px] lg:text-[15px] font-light mt-[-0.6vh]">
+              {color} | {attr}
+            </div>
+
+            <div className="lg:mt-[1.2vh]">
+              {/* status badge */}
+              <div
+                className={`rounded-[5px] lg:rounded-[7px] inline-block px-[2vw] py-[0.2vh] lg:py-[0.3vh] lg:px-[1vw] ${statusClasses} xl:py-1 xl:px-4`}
+              >
+                <div className="text-[12px] font-normal lg:text-[14px]">
+                  {status}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:hidden mt-[2.4vh] w-full h-0 border border-[#cacaca]" />
+
+        <div className="flex lg:flex lg:flex-col lg:justify-center lg:items-end mt-[3vh] lg:mt-[0px]">
+          <div className="text-[#555555] dark:text-[#BBC2C9] mr-[3vw] lg:mr-[0] text-[0.95rem] lg:text-[1.1rem] font-normal">
+            Total
+          </div>
+          <div className="text-black dark:text-[#F1F1F1] text-[0.9rem] lg:text-[18px] md:mb-[1.7vh] lg:font-medium lg:mt-[-0.7vh]">
+            ₹{price}
+          </div>
+
+          <div
+            data-svg-wrapper
+            className="max-sm:absolute bottom-[1.5vh] right-[4vw] lg:static md:absolute md:bottom-[1.5vh] md:right-[3.3vw]"
+          >
+            <svg
+              className="max-sm:h-[25px] max-sm:w-[25px]"
+              width="30"
+              height="31"
+              viewBox="0 0 30 31"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <rect
+                width="30"
+                height="30"
+                rx="15"
+                transform="matrix(-1 0 0 1 30 0.253723)"
+                fill="#534FF2"
+              />
+              <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M11.2636 7.53034C11.6151 7.16152 12.1849 7.16152 12.5364 7.53034L19.7364 15.0859C20.0879 15.4547 20.0879 16.0527 19.7364 16.4215L12.5364 23.9771C12.1849 24.3459 11.6151 24.3459 11.2636 23.9771C10.9121 23.6083 10.9121 23.0103 11.2636 22.6415L17.8272 15.7537L11.2636 8.86599C10.9121 8.49716 10.9121 7.89917 11.2636 7.53034Z"
+                fill="white"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default OrderCard;

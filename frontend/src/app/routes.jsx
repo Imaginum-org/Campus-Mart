@@ -1,0 +1,61 @@
+import { Routes, Route } from "react-router-dom";
+
+import MainLayout from "../layouts/MainLayout.jsx";
+import ProtectedLayout from "../layouts/ProtectedLayout.jsx";
+
+import Login from "../features/auth/pages/Login.jsx";
+import Signup from "../features/auth/pages/Signup.jsx";
+import ForgotPassword from "../features/auth/pages/ForgotPassword.jsx";
+import ResetPassword from "../features/auth/pages/ResetPassword.jsx";
+import VerifyEmail from "../features/auth/pages/VerifyEmail.jsx";
+import CheckEmail from "../features/auth/pages/CheckEmail.jsx";
+
+import Home from "../features/product/pages/Home.jsx";
+import ProductDescription from "../features/product/pages/ProductDescription.jsx";
+import ProductListing from "../features/product/pages/ProductListing.jsx";
+import ProductCategory from "../features/product/pages/ProductCategory.jsx";
+import PricingModel from "../features/product/pages/PricingModel.jsx";
+
+import Profile from "../features/user/pages/Profile.jsx";
+import Wishlist from "../features/user/pages/Wishlist.jsx";
+import Myorders from "../features/user/pages/Myorders.jsx";
+import ContactUs from "../features/user/pages/ContactUs.jsx";
+import Termscondition from "../features/user/pages/Termscondition.jsx";
+
+import Chat from "../features/chat/pages/Chat.jsx";
+import Notification from "../features/notification/pages/Notification.jsx";
+
+export default function AppRoutes() {
+  return (
+    <Routes>
+      {/* AUTH ROUTES*/}
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/checkEmail" element={<CheckEmail />} />
+
+      {/*MAIN LAYOUT*/}
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/product/:id" element={<ProductDescription />} />
+        <Route path="/category/:categoryName" element={<ProductCategory />} />
+        <Route path="/price" element={<PricingModel />} />
+
+        {/* PROTECTED ROUTES */}
+        <Route element={<ProtectedLayout />}>
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/myorders" element={<Myorders />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/notification" element={<Notification />} />
+          <Route path="/upload" element={<ProductListing />} />
+          
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/termscondition" element={<Termscondition />} />
+        </Route>
+      </Route>
+    </Routes>
+  );
+}

@@ -1,13 +1,8 @@
 import { upload } from "@imagekit/javascript";
-import axios from "axios";
+import instance from "../services/axiosInstance";
 
 export const uploadImage = async (file) => {
-  const { data } = await axios.get(
-    `${import.meta.env.VITE_API_BASE_URL}/api/imagekit/auth`,
-    {
-      withCredentials: true,
-    },
-  );
+  const { data } = await instance.get("/api/imagekit/auth");
 
   const toBase64 = (file) =>
     new Promise((resolve, reject) => {
