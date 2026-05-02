@@ -14,13 +14,25 @@ import { MdOutlineLogout } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoChevronBackOutline } from "react-icons/io5";
 import { toast } from "react-hot-toast";
+
 import { useUser } from "../../context/useUserContext.jsx";
 import { logoutUser } from "../../features/auth/api/authApi.js";
 import { useTheme } from "../../context/ThemeContext.jsx";
 
-const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
-  const { userDetails, isLoggedIn, loading, fetchUserProfile, clearUserData } =
-    useUser();
+import useDebounce from "../../features/search/hooks/useDebounce";
+import { searchProducts } from "../../features/search/api/searchApi";
+import SearchDropdown from "../../features/search/components/SearchDropdown";
+
+import { useLocation } from "react-router-dom";
+
+const Header = ({ color, textColor, isChat }) => {
+  const {
+    userDetails,
+    isLoggedIn,
+    loading: userLoading,
+    fetchUserProfile,
+    clearUserData,
+  } = useUser();
 
   const [search, setSearch] = useState("");
   const [notification] = useState(1);
@@ -29,8 +41,49 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
   const [fade, setFade] = useState(true);
   const { darkMode, toggleDarkMode } = useTheme();
 
+  const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounce(query, 300);
+  const [results, setResults] = useState([]);
+
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  const [showDropdown, setShowDropdown] = useState(false);
+
   const menuRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const path = location.pathname;
+
+    if (path.startsWith("/search") || path.startsWith("/product")) {
+      setSearch("");
+      setQuery("");
+      setResults([]);
+      setShowDropdown(false);
+    }
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!debouncedQuery) {
+      setResults([]);
+      return;
+    }
+
+    const fetch = async () => {
+      try {
+        setSearchLoading(true);
+        const res = await searchProducts(debouncedQuery);
+        setResults(res.data?.products || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setSearchLoading(false);
+      }
+    };
+
+    fetch();
+  }, [debouncedQuery]);
 
   const placeholderWords = [
     "Electronics",
@@ -91,9 +144,13 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
     if (isLoggedIn && !userDetails) {
       fetchUserProfile();
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, userDetails, fetchUserProfile]);
 
-  const handleSearchBar = (e) => setSearch(e.target.value);
+  const handleSearchBar = (e) => {
+    setSearch(e.target.value);
+    setQuery(e.target.value);
+    setShowDropdown(true);
+  };
   const handleMenu = () => setShowmenu((p) => !p);
 
   const goToLogin = () => navigate("/login");
@@ -150,7 +207,7 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
               name={userDetails?.name}
               imageUrl={userDetails?.avatar}
               size="small"
-              isLoading={loading}
+              isLoading={userLoading}
             />
           </button>
         </div>
@@ -209,7 +266,7 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
                     name={userDetails?.name}
                     imageUrl={userDetails?.avatar}
                     size="medium"
-                    isLoading={loading}
+                    isLoading={userLoading}
                   />
                   <div>
                     <h1 className="text-black font-medium text-sm sm:text-base">
@@ -292,6 +349,14 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
               type="text"
               value={search}
               onChange={handleSearchBar}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  navigate(`/search?q=${query}`);
+                  setShowDropdown(false);
+                }
+              }}
+              onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+              onFocus={() => setShowDropdown(true)}
             />
             {search === "" && (
               <span
@@ -313,6 +378,13 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
               size={22}
               className="text-black size-4 lg:size-5 mr-2 cursor-pointer dark:text-[#64707D]"
             />
+            {showDropdown && (
+              <SearchDropdown
+                results={results}
+                loading={searchLoading}
+                query={query}
+              />
+            )}
           </div>
 
           <div className="hidden items-center text-[1.9vw] sm:flex gap-8 md:gap-7 lg:gap-10 font-medium xl:gap-10">
@@ -360,7 +432,7 @@ const Header = ({ color, textColor, bagUrl, isHome, darkUrl, isChat }) => {
                 name={userDetails?.name}
                 imageUrl={userDetails?.avatar}
                 size="medium"
-                isLoading={loading}
+                isLoading={userLoading}
               />
             </button>
           </div>

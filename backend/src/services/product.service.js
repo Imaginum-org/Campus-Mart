@@ -243,7 +243,6 @@ export const getAllProducts = async (query) => {
   };
 };
 
-// SINGLE PRODUCT
 export const getSingleProduct = async (id) => {
   const product = await Product.findOneAndUpdate(
     { _id: id, is_deleted: false },
@@ -260,7 +259,6 @@ export const getSingleProduct = async (id) => {
   return product;
 };
 
-// SEARCH SUGGESTIONS
 export const getSearchSuggestions = async (query) => {
   const sanitizedQuery = query.trim().toLowerCase();
 
@@ -276,4 +274,110 @@ export const getSearchSuggestions = async (query) => {
     .select("title slug images selling_price")
     .limit(6)
     .lean();
+};
+
+export const searchProducts = async (query) => {
+  if (!query || query.trim().length === 0) return [];
+
+  const sanitizedQuery = query.trim().toLowerCase();
+
+  const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  const safeQuery = escapeRegex(sanitizedQuery);
+
+  const compactQuery = escapeRegex(sanitizedQuery.replace(/\s+/g, ""));
+  const tokens = sanitizedQuery.split(/\s+/).map(escapeRegex);
+
+  const now = new Date();
+
+  const pipeline = [
+    {
+      $match: {
+        is_deleted: false,
+        status: PRODUCT_STATUS.LISTED,
+      },
+    },
+
+    {
+      $match: {
+        $or: [
+          { title: { $regex: safeQuery, $options: "i" } },
+          { title: { $regex: compactQuery, $options: "i" } },
+          { description: { $regex: safeQuery, $options: "i" } },
+          { category: { $regex: safeQuery, $options: "i" } },
+
+          ...tokens.map((token) => ({
+            title: { $regex: token, $options: "i" },
+          })),
+        ],
+      },
+    },
+
+    {
+      $addFields: {
+        relevanceScore: {
+          $add: [
+            {
+              $cond: [
+                {
+                  $regexMatch: {
+                    input: "$title",
+                    regex: safeQuery,
+                    options: "i",
+                  },
+                },
+                10,
+                0,
+              ],
+            },
+          ],
+        },
+      },
+    },
+
+    // ⏱️ RECENCY
+    {
+      $addFields: {
+        hoursSinceCreated: {
+          $divide: [{ $subtract: [now, "$createdAt"] }, 1000 * 60 * 60],
+        },
+      },
+    },
+    {
+      $addFields: {
+        recencyScore: {
+          $divide: [1, { $add: ["$hoursSinceCreated", 1] }],
+        },
+      },
+    },
+
+    {
+      $addFields: {
+        finalScore: {
+          $add: ["$relevanceScore", { $multiply: ["$recencyScore", 30] }],
+        },
+      },
+    },
+
+    {
+      $sort: {
+        finalScore: -1,
+        createdAt: -1,
+      },
+    },
+
+    { $limit: 20 },
+
+    {
+      $project: {
+        title: 1,
+        images: 1,
+        selling_price: 1,
+        category: 1,
+        createdAt: 1,
+      },
+    },
+  ];
+
+  return await Product.aggregate(pipeline);
 };

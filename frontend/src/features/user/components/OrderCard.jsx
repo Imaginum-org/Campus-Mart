@@ -1,3 +1,5 @@
+import { Trash2 } from "lucide-react";
+
 const OrderCard = ({
   orderId,
   placedOn,
@@ -97,6 +99,24 @@ const OrderCard = ({
             </svg>
           </div>
         </div>
+      </div>
+
+      {/* Action Buttons Section */}
+      <div className="w-full h-[0px] border lg:border-1 border-[#ECEEFF] mt-[2vh] mb-[2vh] lg:my-[1.5vh] xl:my-[2vh]" />
+
+      <div className="flex flex-wrap gap-[2vw] lg:gap-[1vw] lg:justify-end items-center">
+        <button className="px-[3vw] py-[0.8vh] lg:px-[1.2vw] lg:py-[0.6vh] bg-[#534FF2] text-white rounded-[8px] text-[13px] lg:text-[14px] font-medium hover:bg-[#4239D4] transition-colors whitespace-nowrap">
+          Boost Visibility
+        </button>
+        <button className="px-[3vw] py-[0.8vh] lg:px-[1.2vw] lg:py-[0.6vh] bg-white dark:bg-[#2A2D31] border border-[#D0D0D0] dark:border-[#444] text-[#333] dark:text-[#E1E1E1] rounded-[8px] text-[13px] lg:text-[14px] font-medium hover:bg-[#F5F5F5] dark:hover:bg-[#333] transition-colors whitespace-nowrap">
+          Edit Details
+        </button>
+        <button className="px-[3vw] py-[0.8vh] lg:px-[1.2vw] lg:py-[0.6vh] bg-white dark:bg-[#2A2D31] border border-[#D0D0D0] dark:border-[#444] text-[#333] dark:text-[#E1E1E1] rounded-[8px] text-[13px] lg:text-[14px] font-medium hover:bg-[#F5F5F5] dark:hover:bg-[#333] transition-colors whitespace-nowrap">
+          Unlist
+        </button>
+        <button className="p-[0.8vh] lg:p-[0.6vh] bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-[8px] hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
+          <Trash2 size={18} strokeWidth={2.5} />
+        </button>
       </div>
     </div>
   );

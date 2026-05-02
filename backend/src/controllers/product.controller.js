@@ -98,3 +98,25 @@ export const getSearchSuggestions = async (req, res, next) => {
     next(error);
   }
 };
+
+export const searchProducts = async (req, res, next) => {
+  try {
+    const { q } = req.query;
+
+    if (!q || q.trim().length === 0) {
+      return res.status(200).json({
+        success: true,
+        products: [],
+      });
+    }
+
+    const products = await productService.searchProducts(q);
+
+    return res.status(200).json({
+      success: true,
+      products,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -15,6 +15,7 @@ import CheckEmail from "../features/auth/pages/CheckEmail.jsx";
 import Home from "../features/product/pages/Home.jsx";
 import ProductDescription from "../features/product/pages/ProductDescription.jsx";
 import ProductListing from "../features/product/pages/ProductListing.jsx";
+import ProductListed from "../features/product/pages/ProductListed.jsx";
 import ProductCategory from "../features/product/pages/ProductCategory.jsx";
 import PricingModel from "../features/product/pages/PricingModel.jsx";
 
@@ -27,6 +28,8 @@ import Termscondition from "../features/user/pages/Termscondition.jsx";
 
 import Chat from "../features/chat/pages/Chat.jsx";
 import Notification from "../features/notification/pages/Notification.jsx";
+
+import SearchResults from "../features/search/pages/SearchResults.jsx";
 
 export default function AppRoutes() {
   return (
@@ -42,6 +45,7 @@ export default function AppRoutes() {
       {/* PUBLIC WITH HEADER */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
+        <Route path="/search" element={<SearchResults />} />
         <Route path="/product/:id" element={<ProductDescription />} />
         <Route path="/category/:categoryName" element={<ProductCategory />} />
         <Route path="/price" element={<PricingModel />} />
@@ -56,7 +60,7 @@ export default function AppRoutes() {
           <Route path="/chat" element={<Chat />} />
           <Route path="/notification" element={<Notification />} />
           <Route path="/upload" element={<ProductListing />} />
-
+          <Route path="/productlisted" element={<ProductListed />} />
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/termscondition" element={<Termscondition />} />
         </Route>

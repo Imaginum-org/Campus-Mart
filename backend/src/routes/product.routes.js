@@ -10,6 +10,7 @@ import {
   getSingleProduct,
   getBoostedProducts,
   getSearchSuggestions,
+  searchProducts, 
 } from "../controllers/product.controller.js";
 
 const router = express.Router();
@@ -24,6 +25,7 @@ const createProductLimiter = rateLimit({
 
 // Boosted products (must be before :id)
 router.get("/boosted", getBoostedProducts);
+router.get("/search", searchProducts);
 router.get("/search-suggestions", getSearchSuggestions);
 
 router.get("/", getAllProducts);

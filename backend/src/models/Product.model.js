@@ -179,11 +179,31 @@ const productSchema = new Schema(
   },
 );
 
-productSchema.index({ title: "text", description: "text" });
-productSchema.index({ category: 1, selling_price: 1 });
-productSchema.index({ seller_id: 1, createdAt: -1 });
+productSchema.index(
+  { title: "text", description: "text", category: "text" },
+  {
+    weights: {
+      title: 5, // highest priority
+      category: 3, // medium priority
+      description: 1, // lowest priority
+    },
+  },
+);
+productSchema.index({
+  category: 1,
+  selling_price: 1,
+  createdAt: -1,
+});
+productSchema.index({
+  seller_id: 1,
+  createdAt: -1,
+});
+productSchema.index({
+  is_deleted: 1,
+  status: 1,
+});
+
 productSchema.index({ is_boosted: 1, boost_expires_at: -1 });
-productSchema.index({ createdAt: -1 });
 productSchema.index(
   { seller_id: 1, title: 1, selling_price: 1 },
   { unique: false },
@@ -192,7 +212,9 @@ productSchema.index(
 For Nearby products and Nearby products
 $near can be accessed
 */
-productSchema.index({ location: "2dsphere" });
+productSchema.index({
+  location: "2dsphere",
+});
 
 productSchema.pre("save", async function () {
   try {
