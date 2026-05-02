@@ -4,7 +4,7 @@ import { useEffect } from "react";
 
 import { MdShoppingBag } from "react-icons/md";
 import { BsFillBoxSeamFill } from "react-icons/bs";
-import { MdChat } from "react-icons/md";  
+import { MdChat } from "react-icons/md";
 import whitebag from "../../../assets/bag.png";
 import bluebag from "../../../assets/bag.png";
 import { useTheme } from "../../../context/ThemeContext.jsx";

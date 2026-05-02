@@ -15,8 +15,9 @@
 
 .DialogOverlay {
 	background-color: var(--black-a9);
-	
+
 }
+
 .AlertDialogContent {
 	background-color: white;
 	border-radius: 6px;
@@ -31,6 +32,7 @@
 	padding: 25px;
 	animation: contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .AlertDialogContent:focus {
 	outline: none;
 }
@@ -54,52 +56,60 @@
 	align-items: center;
 	justify-content: center;
 	border-radius: 6px;
-	padding:0.9vh 1.2vw;
+	padding: 0.9vh 1.2vw;
 	font-size: 17px;
 
 	font-weight: 400;
 
 	user-select: none;
-	
-   
+
+
 }
 
 @media screen and (max-width: 768px) {
-  .Button {
-    font-size: 0.9rem;
-   
-   
-    border-radius: 5px;
-  }
+	.Button {
+		font-size: 0.9rem;
+
+
+		border-radius: 5px;
+	}
 }
+
 .Button:focus:not(:focus-visible) {
 	outline: 0;
 }
+
 .Button:focus-visible {
 	outline: 2px solid var(--violet-6);
 	outline-offset: 1px;
 }
+
 .Button.violet {
 	background-color: #ffdddd;
 	color: #e30000;
 	outline-color: var(--violet-6);
 }
+
 .Button.violet:hover {
 	background-color: #f9c7c7;
 }
+
 .Button.red {
 	background-color: var(--red-4);
 	color: var(--red-11);
 	outline-color: var(--red-7);
 }
+
 .Button.red:hover {
 	background-color: var(--red-5);
 }
+
 .Button.mauve {
 	background-color: var(--mauve-4);
 	color: var(--mauve-11);
 	outline-color: var(--mauve-7);
 }
+
 .Button.mauve:hover {
 	background-color: var(--mauve-5);
 }
@@ -108,6 +118,7 @@
 	from {
 		opacity: 0;
 	}
+
 	to {
 		opacity: 1;
 	}
@@ -118,9 +129,9 @@
 		opacity: 0;
 		transform: translate(-50%, -48%) scale(0.96);
 	}
+
 	to {
 		opacity: 1;
 		transform: translate(-50%, -50%) scale(1);
 	}
 }
- 

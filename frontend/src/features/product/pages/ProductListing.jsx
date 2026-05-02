@@ -883,6 +883,6 @@ const ProductListing = () => {
       </div>
     </div>
   );
-};;
+};
 
 export default ProductListing;

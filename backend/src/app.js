@@ -12,6 +12,7 @@ import productRouter from "./routes/product.routes.js";
 import reportRouter from "./routes/report.routes.js";
 import addressRouter from "./routes/address.routes.js";
 import imagekitRouter from "./routes/imagekit.routes.js";
+import wishlistRouter from "./routes/wishlist.routes.js";
 
 // import errorMiddleware from "./middlewares/error.middleware.js";
 const app = express();
@@ -97,6 +98,7 @@ app.use("/api/product", productRouter);
 app.use("/api/report", reportRouter);
 app.use("/api/address", addressRouter);
 app.use("/api/imagekit", imagekitRouter);
+app.use("/api/wishlist", wishlistRouter);
 
 // If no route matches
 app.use((req, res) => {

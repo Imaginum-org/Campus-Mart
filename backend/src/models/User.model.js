@@ -132,6 +132,13 @@ const userSchema = new Schema(
       type: Date,
       default: null,
     },
+
+    wishlist: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
   },
   {
     timestamps: true,

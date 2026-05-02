@@ -502,6 +502,6 @@ const Home = () => {
       <Footer />
     </motion.div>
   );
-};;
+};
 
 export default Home;

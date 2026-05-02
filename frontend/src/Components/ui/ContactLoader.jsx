@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 const ContactLoader = () => {
   return (
@@ -608,6 +608,6 @@ const ContactLoader = () => {
       </style>
     </div>
   );
-}
+};
 
-export default ContactLoader
+export default ContactLoader;

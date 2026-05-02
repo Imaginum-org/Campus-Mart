@@ -1,10 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-// import Header from "../../../Components/Header";
 import Profile_left_part from "../../../features/user/components/Profile_left_part.jsx";
-// import bag from "../assets/bag.png";
-// import bluebag from "../assets/bluebag.png";
-// import { BellIcon } from "@heroicons/react/24/solid";
 
 export default function Notification() {
   const [notes, setNotes] = useState([
@@ -37,7 +33,6 @@ export default function Notification() {
   return (
     <>
       <div className="h-screen w-screen dark:bg-[#131313]  ">
-        {/* <Header bagUrl={bag} darkUrl={bluebag} /> */}
         <div className="md:flex lg:flex">
           <div className="hidden md:block md:w-[37%] lg:w-[28%] xl:w-[26%] pt-[3.5vh] pl-[2vw] pr-[1.75vw] pb-[2vh] bg-[#FBFBFB] dark:bg-[#131313] xl:pt-[2.5vh] xl:-mr-4 xl:pb-0">
             <Profile_left_part />

@@ -48,8 +48,10 @@ instance.interceptors.response.use(
         }
       } catch (err) {
         localStorage.removeItem("isAuthenticated");
-        window.location.href = "/login";
+        localStorage.removeItem("cachedUserDetails");
+
         isRefreshing = false;
+
         return Promise.reject(err);
       }
     }

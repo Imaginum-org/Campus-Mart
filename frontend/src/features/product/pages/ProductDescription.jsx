@@ -4,19 +4,24 @@ import { EllipsisVertical, IndianRupee } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { MessageSquareMore } from "lucide-react";
-import { FaRegHeart } from "react-icons/fa";
+import { FaRegHeart, FaHeart } from "react-icons/fa";
 import { AnimatePresence, motion } from "framer-motion";
-
 import { getProductById } from "../api/productApi";
+import { useWishlist } from "../../../context/useWishlist.js";
 
 const FALLBACK_IMAGE = "/image10.png";
 
 const ProductDescription = () => {
-  const [report, setReport] = useState(false);
-  const [wishlist, setWishlist] = useState(false);
-
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const [report, setReport] = useState(false);
+
+  // Wishlist state
+  const [inWishlist, setInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+
+  const { toggleWishlist, checkProductInWishlist } = useWishlist();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -37,6 +42,23 @@ const ProductDescription = () => {
     }
   }, [product]);
 
+  // Wishlist check
+  useEffect(() => {
+    const checkWishlistStatus = async () => {
+      try {
+        const isInWish = await checkProductInWishlist(id);
+        setInWishlist(isInWish);
+      } catch (error) {
+        console.error("Error checking wishlist:", error);
+      }
+    };
+
+    if (id) {
+      checkWishlistStatus();
+    }
+  }, [id, checkProductInWishlist]);
+
+  //Fetch product
   useEffect(() => {
     let isMounted = true;
 
@@ -72,9 +94,23 @@ const ProductDescription = () => {
     setTimeout(() => navigate("/"), 800);
   };
 
-  const handleWishlist = () => {
-    setWishlist((prev) => !prev);
-    toast.success("Added to Wishlist");
+  // Wishlist handler
+  const handleWishlist = async () => {
+    if (wishlistLoading) return;
+
+    setWishlistLoading(true);
+
+    try {
+      const result = await toggleWishlist(id);
+      setInWishlist(result);
+
+      toast.success(result ? "Added to Wishlist" : "Removed from Wishlist");
+    } catch (error) {
+      toast.error("Failed to update wishlist");
+      console.error("Wishlist error:", error);
+    } finally {
+      setWishlistLoading(false);
+    }
   };
 
   const handleShare = async () => {
@@ -104,7 +140,6 @@ const ProductDescription = () => {
 
   return (
     <div className="w-full min-h-screen">
-      {/* <Header bagUrl={"bag.png"} darkUrl={"/bluebag.png"} /> */}
       <div className="flex flex-col w-full xl:flex-row 2xl:min-h-screen dark:bg-[#131313] xl:pt-2">
         <Toaster
           position="top-center"
@@ -318,13 +353,22 @@ const ProductDescription = () => {
 
           {/* Right bottom side */}
           <div className="flex flex-col w-full justify-between items-center mt-4 mb-6 gap-3 lg:flex-row xl:gap-96 dark:bg-[#131313]">
-            <div
+            <button
               onClick={handleWishlist}
-              className="outline outline-2 outline-offset-[-2px] outline-neutral-200 rounded-md text-black w-full py-3 flex justify-center items-center font-semibold text-sm md:text-base font-robotoFlex cursor-pointer gap-2 dark:border-[#DDDDDD] dark:text-[#F1F1F1] dark:outline-[#DDDDDD] dark:outline-1"
+              disabled={wishlistLoading}
+              className={`outline outline-2 outline-offset-[-2px] outline-neutral-200 rounded-md text-black w-full py-3 flex justify-center items-center font-semibold text-sm md:text-base font-robotoFlex gap-2 dark:border-[#DDDDDD] dark:text-[#F1F1F1] dark:outline-[#DDDDDD] dark:outline-1 hover:bg-gray-50 dark:hover:bg-[#1A1D20] transition-colors disabled:opacity-50 ${
+                wishlistLoading
+                  ? "cursor-not-allowed opacity-50"
+                  : "cursor-pointer"
+              }`}
             >
-              <FaRegHeart className="lg:size-4 hover:text-red-500" />
-              Add to Wishlist
-            </div>
+              {inWishlist ? (
+                <FaHeart className="lg:size-4 text-pink-500" />
+              ) : (
+                <FaRegHeart className="lg:size-4 hover:text-pink-500 transition-colors" />
+              )}
+              {inWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
+            </button>
             <Link
               to={`/chat?seller=${product.seller_id?._id}`}
               className="bg-gradient-to-r from-indigo-600 to-blue-600 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.17)] rounded-md text-white w-full py-3 flex justify-center items-center font-semibold gap-1 text-sm md:text-base"
