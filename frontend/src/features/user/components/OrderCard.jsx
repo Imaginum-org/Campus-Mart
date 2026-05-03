@@ -74,7 +74,7 @@ const OrderCard = ({
   const handleRelistProduct = async () => {
     try {
       setIsRelisting(true);
-      const res = await axios.patch(`/api/product/${orderId}/relist`);
+      const res = await relistProduct(orderId);
 
       if (res.data.success) {
         toast.success("Product relisted successfully");
