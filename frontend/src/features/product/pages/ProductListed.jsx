@@ -1,59 +1,66 @@
 import Profile_left_part from "../../../features/user/components/Profile_left_part.jsx";
-import Image1 from "../../../assets/earphone.png";
 import TabSwitcher from "../../../features/user/components/manageorderanime.jsx";
 import OrderCard from "../../../features/user/components/OrderCard.jsx";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { MdShoppingBag } from "react-icons/md";
+import { getUserProducts } from "../api/productApi.js";
+import toast from "react-hot-toast";
+import Loader from "../../../Components/ui/Loader.jsx";
 
 function ProductListed() {
   const [activeTab, setActiveTab] = useState("All");
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [orders] = useState([
-    {
-      id: "130525-01",
-      placedOn: "13-05-2025",
-      imageUrl: Image1,
-      name: "Ear Buds",
-      color: "Blue color",
-      attr: "Wireless",
-      status: "In progress",
-      price: "750",
-    },
-    {
-      id: "130525-02",
-      placedOn: "14-05-2025",
-      imageUrl: Image1,
-      name: "Ear Buds Pro",
-      color: "Black",
-      attr: "Wireless",
-      status: "cancelled",
-      price: "1150",
-    },
-    {
-      id: "130525-03",
-      placedOn: "15-05-2025",
-      imageUrl: Image1,
-      name: "Ear Buds Plus",
-      color: "White",
-      attr: "Wireless",
-      status: "Delivered",
-      price: "950",
-    },
-  ]);
+  useEffect(() => {
+    fetchUserProducts();
+  }, []);
 
-  const filteredOrders = useMemo(() => {
+  const fetchUserProducts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const res = await getUserProducts();
+
+      if (res.data.success) {
+        setProducts(res.data.data || []);
+      }
+    } catch (err) {
+      setError(err?.response?.data?.message || "Failed to fetch products");
+      toast.error("Failed to load your products");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredProducts = useMemo(() => {
     const tab = (activeTab || "All").toLowerCase().trim();
-    if (tab === "all") return orders;
-    if (tab === "in progress" || tab === "inprogress")
-      return orders.filter(
-        (o) => (o.status || "").toLowerCase().trim() === "in progress",
-      );
-    if (tab === "delivered")
-      return orders.filter(
-        (o) => (o.status || "").toLowerCase().trim() === "delivered",
-      );
-    return orders;
-  }, [activeTab, orders]);
+
+    if (tab === "all") return products;
+
+    return products.filter((p) => {
+      const productStatus = (p.status || "").toLowerCase().trim();
+      return productStatus === tab;
+    });
+  }, [activeTab, products]);
+
+  const handleProductDeleted = (productId) => {
+    setProducts((prev) => prev.filter((p) => p._id !== productId));
+  };
+
+  const handleProductUnlisted = (productId) => {
+    setProducts((prev) =>
+      prev.map((p) => (p._id === productId ? { ...p, status: "UNLISTED" } : p)),
+    );
+  };
+
+  const handleProductRelisted = (productId) => {
+    setProducts((prev) =>
+      prev.map((p) => (p._id === productId ? { ...p, status: "LISTED" } : p)),
+    );
+  };
 
   return (
     <div className="h-screen w-full dark:bg-[#131313] flex flex-col">
@@ -79,22 +86,33 @@ function ProductListed() {
               </div>
             </div>
 
-            {filteredOrders.length === 0 ? (
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <Loader />
+              </div>
+            ) : error ? (
+              <div className="py-8 text-center text-red-500 dark:text-red-400">
+                {error}
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-                No orders found for "{activeTab}"
+                No products found for "{activeTab}"
               </div>
             ) : (
-              filteredOrders.map((o) => (
+              filteredProducts.map((p) => (
                 <OrderCard
-                  key={o.id}
-                  orderId={o.id}
-                  placedOn={o.placedOn}
-                  imageUrl={o.imageUrl}
-                  name={o.name}
-                  color={o.color}
-                  attr={o.attr}
-                  status={o.status}
-                  price={o.price}
+                  key={p._id}
+                  orderId={p._id}
+                  placedOn={new Date(p.createdAt).toLocaleDateString()}
+                  imageUrl={p.images?.[0] || "/image10.png"}
+                  name={p.title}
+                  color={p.attributes?.color || "N/A"}
+                  attr={p.attributes?.usage_duration || "N/A"}
+                  status={p.status}
+                  price={p.selling_price}
+                  onProductDeleted={handleProductDeleted}
+                  onProductUnlisted={handleProductUnlisted}
+                  onProductRelisted={handleProductRelisted}
                 />
               ))
             )}

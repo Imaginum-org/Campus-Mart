@@ -10,7 +10,11 @@ import {
   getSingleProduct,
   getBoostedProducts,
   getSearchSuggestions,
-  searchProducts, 
+  searchProducts,
+  getMyProducts,
+  deleteProduct,
+  unlistProduct,
+  relistProduct,
 } from "../controllers/product.controller.js";
 
 const router = express.Router();
@@ -22,11 +26,13 @@ const createProductLimiter = rateLimit({
   message: "Too many product listings, please try later",
 });
 
-
 // Boosted products (must be before :id)
 router.get("/boosted", getBoostedProducts);
 router.get("/search", searchProducts);
 router.get("/search-suggestions", getSearchSuggestions);
+
+// User's products (must be before :id)
+router.get("/user/my-products", auth, getMyProducts);
 
 router.get("/", getAllProducts);
 
@@ -37,6 +43,11 @@ router.post(
   validate(createProductSchema),
   createProduct,
 );
+
+// Delete and Unlist (must be before :id)
+router.delete("/:id", auth, deleteProduct);
+router.patch("/:id/unlist", auth, unlistProduct);
+router.patch("/:id/relist", auth, relistProduct);
 
 router.get("/:id", getSingleProduct);
 

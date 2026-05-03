@@ -381,3 +381,68 @@ export const searchProducts = async (query) => {
 
   return await Product.aggregate(pipeline);
 };
+
+// GET USER PRODUCTS
+export const getUserProducts = async (userId) => {
+  return await Product.find({
+    seller_id: userId,
+    is_deleted: false,
+  })
+    .sort({ createdAt: -1 })
+    .lean();
+};
+
+// SOFT DELETE PRODUCT
+export const deleteProduct = async (productId, userId) => {
+  const product = await Product.findOne({
+    _id: productId,
+    seller_id: userId,
+  });
+
+  if (!product) {
+    throw new Error(
+      "Product not found or you don't have permission to delete it",
+    );
+  }
+
+  if (product.is_deleted) {
+    throw new Error("Product is already deleted");
+  }
+
+  product.is_deleted = true;
+  return await product.save();
+};
+
+// UNLIST PRODUCT
+export const unlistProduct = async (productId, userId) => {
+  const product = await Product.findOne({
+    _id: productId,
+    seller_id: userId,
+  });
+
+  if (!product) {
+    throw new Error(
+      "Product not found or you don't have permission to unlist it",
+    );
+  }
+
+  product.status = PRODUCT_STATUS.UNLISTED;
+  return await product.save();
+};
+
+// RELIST PRODUCT
+export const relistProduct = async (productId, userId) => {
+  const product = await Product.findOne({
+    _id: productId,
+    seller_id: userId,
+  });
+
+  if (!product) {
+    throw new Error(
+      "Product not found or you don't have permission to relist it",
+    );
+  }
+
+  product.status = PRODUCT_STATUS.LISTED;
+  return await product.save();
+};

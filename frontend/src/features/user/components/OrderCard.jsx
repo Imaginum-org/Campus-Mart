@@ -1,4 +1,15 @@
 import { Trash2 } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import DeleteProductModal from "../../product/components/DeleteProductModal.jsx";
+import UnlistProductModal from "../../product/components/UnlistProductModal.jsx";
+import RelistProductModal from "../../product/components/RelistProductModal.jsx";
+import {
+  deleteProduct,
+  unlistProduct,
+  relistProduct,
+} from "../../product/api/productApi.js";
+import toast from "react-hot-toast";
 
 const OrderCard = ({
   orderId,
@@ -9,8 +20,72 @@ const OrderCard = ({
   attr,
   status,
   price,
+  onProductDeleted,
+  onProductUnlisted,
+  onProductRelisted,
 }) => {
+  const navigate = useNavigate();
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [unlistModalOpen, setUnlistModalOpen] = useState(false);
+  const [relistModalOpen, setRelistModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isUnlisting, setIsUnlisting] = useState(false);
+  const [isRelisting, setIsRelisting] = useState(false);
+
   const normalized = (status || "").toLowerCase().trim();
+
+  const handleArrowClick = () => {
+    navigate(`/product/${orderId}`);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDeleteProduct = async () => {
+    try {
+      setIsDeleting(true);
+      const res = await deleteProduct(orderId);
+
+      if (res.data.success) {
+        toast.success("Product deleted successfully");
+        if (onProductDeleted) onProductDeleted(orderId);
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to delete product");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleUnlistProduct = async () => {
+    try {
+      setIsUnlisting(true);
+      const res = await unlistProduct(orderId);
+
+      if (res.data.success) {
+        toast.success("Product unlisted successfully");
+        if (onProductUnlisted) onProductUnlisted(orderId);
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to unlist product");
+    } finally {
+      setIsUnlisting(false);
+    }
+  };
+
+  const handleRelistProduct = async () => {
+    try {
+      setIsRelisting(true);
+      const res = await axios.patch(`/api/product/${orderId}/relist`);
+
+      if (res.data.success) {
+        toast.success("Product relisted successfully");
+        if (onProductRelisted) onProductRelisted(orderId);
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to relist product");
+    } finally {
+      setIsRelisting(false);
+    }
+  };
 
   const statusClasses =
     normalized === "delivered"
@@ -70,9 +145,12 @@ const OrderCard = ({
             ₹{price}
           </div>
 
-          <div
+          <button
+            onClick={handleArrowClick}
             data-svg-wrapper
-            className="max-sm:absolute bottom-[1.5vh] right-[4vw] lg:static md:absolute md:bottom-[1.5vh] md:right-[3.3vw]"
+            className="max-sm:absolute bottom-[1.5vh] right-[4vw] lg:static md:absolute md:bottom-[1.5vh] md:right-[3.3vw] cursor-pointer hover:opacity-80 transition-opacity"
+            aria-label="View product details"
+            title="View product details"
           >
             <svg
               className="max-sm:h-[25px] max-sm:w-[25px]"
@@ -97,7 +175,7 @@ const OrderCard = ({
                 fill="white"
               />
             </svg>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -111,13 +189,58 @@ const OrderCard = ({
         <button className="px-[3vw] py-[0.8vh] lg:px-[1.2vw] lg:py-[0.6vh] bg-white dark:bg-[#2A2D31] border border-[#D0D0D0] dark:border-[#444] text-[#333] dark:text-[#E1E1E1] rounded-[8px] text-[13px] lg:text-[14px] font-medium hover:bg-[#F5F5F5] dark:hover:bg-[#333] transition-colors whitespace-nowrap">
           Edit Details
         </button>
-        <button className="px-[3vw] py-[0.8vh] lg:px-[1.2vw] lg:py-[0.6vh] bg-white dark:bg-[#2A2D31] border border-[#D0D0D0] dark:border-[#444] text-[#333] dark:text-[#E1E1E1] rounded-[8px] text-[13px] lg:text-[14px] font-medium hover:bg-[#F5F5F5] dark:hover:bg-[#333] transition-colors whitespace-nowrap">
-          Unlist
-        </button>
-        <button className="p-[0.8vh] lg:p-[0.6vh] bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-[8px] hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
+        {normalized === "unlisted" ? (
+          <button
+            onClick={() => setRelistModalOpen(true)}
+            disabled={isRelisting}
+            className="px-[3vw] py-[0.8vh] lg:px-[1.2vw] lg:py-[0.6vh] bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-[8px] text-[13px] lg:text-[14px] font-medium hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isRelisting ? "Listing..." : "List"}
+          </button>
+        ) : (
+          <button
+            onClick={() => setUnlistModalOpen(true)}
+            disabled={isUnlisting}
+            className="px-[3vw] py-[0.8vh] lg:px-[1.2vw] lg:py-[0.6vh] bg-white dark:bg-[#2A2D31] border border-[#D0D0D0] dark:border-[#444] text-[#333] dark:text-[#E1E1E1] rounded-[8px] text-[13px] lg:text-[14px] font-medium hover:bg-[#F5F5F5] dark:hover:bg-[#333] transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isUnlisting ? "Unlisting..." : "Unlist"}
+          </button>
+        )}
+        <button
+          onClick={() => setDeleteModalOpen(true)}
+          disabled={isDeleting}
+          className="p-[0.8vh] lg:p-[0.6vh] bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-[8px] hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           <Trash2 size={18} strokeWidth={2.5} />
         </button>
       </div>
+
+      {/* Delete Product Modal */}
+      <DeleteProductModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDeleteProduct}
+        productName={name}
+        isLoading={isDeleting}
+      />
+
+      {/* Unlist Product Modal */}
+      <UnlistProductModal
+        isOpen={unlistModalOpen}
+        onClose={() => setUnlistModalOpen(false)}
+        onConfirm={handleUnlistProduct}
+        productName={name}
+        isLoading={isUnlisting}
+      />
+
+      {/* Relist Product Modal */}
+      <RelistProductModal
+        isOpen={relistModalOpen}
+        onClose={() => setRelistModalOpen(false)}
+        onConfirm={handleRelistProduct}
+        productName={name}
+        isLoading={isRelisting}
+      />
     </div>
   );
 };

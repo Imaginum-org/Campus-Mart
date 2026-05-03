@@ -120,3 +120,70 @@ export const searchProducts = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getMyProducts = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+
+    const products = await productService.getUserProducts(userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Your products fetched successfully",
+      data: products,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteProduct = async (req, res, next) => {
+  try {
+    const productId = req.params.id;
+    const userId = req.userId;
+
+    const product = await productService.deleteProduct(productId, userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Product deleted successfully",
+      data: product,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const unlistProduct = async (req, res, next) => {
+  try {
+    const productId = req.params.id;
+    const userId = req.userId;
+
+    const product = await productService.unlistProduct(productId, userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Product unlisted successfully",
+      data: product,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const relistProduct = async (req, res, next) => {
+  try {
+    const productId = req.params.id;
+    const userId = req.userId;
+
+    const product = await productService.relistProduct(productId, userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Product relisted successfully",
+      data: product,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
