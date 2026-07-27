@@ -361,11 +361,11 @@ function Settings() {
   return (
     <div className="h-screen w-full overflow-hidden bg-[#F7F9FD] font-figtree text-[#111827] dark:bg-[#131313] dark:text-white">
       <div className="flex h-[calc(100vh-70px)]">
-        <aside className="hidden bg-white dark:bg-[#131313] md:block md:w-[22.5%] lg:w-[21%] xl:w-[20.5%] 2xl:w-[20.5%] xl:pt-2 xl:pb-0">
+        <aside className="hidden bg-white dark:bg-[#131313] md:block md:w-auto md:shrink-0 xl:pt-2 xl:pb-0">
           <Profile_left_part />
         </aside>
 
-        <main className="h-full w-full overflow-y-auto bg-[#F5F6FA] px-4 py-6 dark:bg-[#131313] sm:px-6 md:w-[77.5%] lg:w-[79%] lg:p-8 xl:w-[79.5%] xl:px-[5.7rem] xl:py-6 2xl:w-[79.5%]">
+        <main className="h-full w-full overflow-y-auto bg-[#F5F6FA] px-4 py-6 dark:bg-[#131313] sm:px-6 md:flex-1 lg:p-8 xl:px-[5.7rem] xl:py-6">
           <div className="mx-auto w-full max-w-5xl pb-8">
             <header className="mb-5">
               <h1 className="text-[1.4rem] font-bold leading-tight text-gray-900 dark:text-white lg:text-2xl xl:text-xl">
@@ -401,7 +401,7 @@ function Settings() {
                         <div className=" rounded-xl">
                           <AvatarComponent
                             name={userDetails?.name}
-                            imageUrl={userDetails?.avatar.url}
+                            imageUrl={userDetails?.avatar?.url}
                             plan={userDetails?.subscription}
                             size="large"
                             isLoading={loading}
@@ -875,3 +875,4 @@ function AddressCard({ address, index, onEdit, onDelete, onSetDefault }) {
 }
 
 export default Settings;
+

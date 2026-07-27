@@ -2,15 +2,22 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { GrLocation } from "react-icons/gr";
-import { CiSearch, CiMail } from "react-icons/ci";
+import { CiSearch } from "react-icons/ci";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { MdSunny } from "react-icons/md";
 import { HiMiniMoon } from "react-icons/hi2";
 import { FiMessageSquare } from "react-icons/fi";
 import { FaPlus } from "react-icons/fa6";
+import { FaStar } from "react-icons/fa";
 import { LuMessageSquare } from "react-icons/lu";
 import { LuUserRound } from "react-icons/lu";
+import { LuPackage } from "react-icons/lu";
+import { LuBadgeCheck } from "react-icons/lu";
+import { LuCircleHelp } from "react-icons/lu";
+import { LuShield } from "react-icons/lu";
+import { LuBell } from "react-icons/lu";
 import { BsBoxSeam } from "react-icons/bs";
+import { BsLightningChargeFill } from "react-icons/bs";
 import { IoIosHeartEmpty } from "react-icons/io";
 import { MdOutlineLogout } from "react-icons/md";
 import { IoChevronBackOutline } from "react-icons/io5";
@@ -22,6 +29,146 @@ import useDebounce from "../../features/search/hooks/useDebounce";
 import { searchProducts } from "../../features/search/api/searchApi";
 import SearchDropdown from "../../features/search/components/SearchDropdown";
 import { toast } from "react-hot-toast";
+
+const ProfileDropdown = ({
+  userDetails,
+  userLoading,
+  menuRef,
+  onClose,
+  onLogout,
+  mobile = false,
+}) => {
+  const campus = userDetails?.college || userDetails?.campus || "VIT Vellore";
+  const soldCount = userDetails?.soldCount ?? userDetails?.stats?.sold ?? 0;
+
+  const menuGroups = [
+    [
+      { to: "/profile", icon: <LuUserRound />, label: "My Profile" },
+      { to: "/productlisted", icon: <LuPackage />, label: "My Listings" },
+      { to: "/myorders", icon: <BsBoxSeam />, label: "Orders" },
+      { to: "/wishlist", icon: <IoIosHeartEmpty />, label: "Wishlist" },
+      { to: "/chat", icon: <FiMessageSquare />, label: "Messages" },
+      { to: "/notification", icon: <LuBell />, label: "Notifications" },
+    ],
+    [
+      { to: "/settings", icon: <LuBadgeCheck />, label: "Campus Verification" },
+      { to: "/contact", icon: <LuCircleHelp />, label: "Help Center" },
+      { to: "/privacy-policy", icon: <LuShield />, label: "Privacy & Security" },
+    ],
+  ];
+
+  return (
+    <motion.div
+      ref={menuRef}
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 10, scale: 0.98 }}
+      transition={{
+        duration: 0.18,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      className={`
+        absolute
+        right-0
+        top-full
+        z-50
+        mt-2.5
+        max-h-[calc(100vh-6rem)]
+        ${mobile ? "w-[min(calc(100vw-2rem),260px)]" : "w-[270px]"}
+        overflow-y-auto
+        overflow-x-hidden
+        rounded-2xl
+        border
+        border-neutral-200
+        bg-white
+        shadow-[0_14px_34px_rgba(15,23,42,0.12)]
+        dark:border-neutral-800
+        dark:bg-[#1A1D20]
+      `}
+    >
+      <div className="px-4 pb-3 pt-4">
+        <div className="flex items-center gap-3">
+          <AvatarComponent
+            name={userDetails?.name}
+            imageUrl={userDetails?.avatar?.url}
+            size="xmedium"
+            plan={userDetails?.subscription}
+            isLoading={userLoading}
+            className="shrink-0 rounded-full"
+            showBadge
+          />
+
+          <div className="min-w-0">
+            <h1 className="truncate text-sm font-semibold leading-tight text-[#1F2937] dark:text-white">
+              {userDetails?.name || "User"}
+            </h1>
+
+            <p className="truncate text-xs leading-4 text-neutral-400 dark:text-neutral-500">
+              {userDetails?.email || ""}
+            </p>
+
+            <div className="mt-0.5 flex min-w-0 items-center gap-1 text-xs font-medium text-[#4B45FF]">
+              <GrLocation className="size-3 shrink-0" />
+              <span className="truncate">{campus}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 border-t border-neutral-200 pt-2.5 text-xs dark:border-neutral-800">
+          <div className="flex min-w-0 items-center gap-1">
+            <FaStar className="size-3 shrink-0 text-[#FFB000]" />
+            <span className="font-semibold text-[#4B5563] dark:text-neutral-100">5</span>
+            <span className="text-neutral-400">trust</span>
+          </div>
+
+          <div className="h-3.5 w-px bg-neutral-200 dark:bg-neutral-700" />
+
+          <div className="flex min-w-0 items-center gap-1">
+            <BsLightningChargeFill className="size-3 shrink-0 text-[#4B45FF]" />
+            <span className="font-semibold text-[#111827] dark:text-neutral-100">100%</span>
+            <span className="text-neutral-400">response</span>
+          </div>
+
+          <div className="h-3.5 w-px bg-neutral-200 dark:bg-neutral-700" />
+
+          <div className="whitespace-nowrap text-neutral-400">
+            <span className="font-semibold text-[#9CA3AF] dark:text-neutral-300">{soldCount}</span>{" "}
+            sold
+          </div>
+        </div>
+      </div>
+
+      {menuGroups.map((group, groupIndex) => (
+        <div
+          key={groupIndex}
+          className="border-t border-neutral-200 py-1.5 dark:border-neutral-800"
+        >
+          {group.map(({ to, icon, label }) => (
+            <Link
+              key={label}
+              to={to}
+              onClick={onClose}
+              className="flex items-center gap-3 px-4 py-2 text-xs font-medium text-[#4B5563] transition-colors duration-200 hover:bg-neutral-50 active:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:active:bg-neutral-800"
+            >
+              <span className="text-base text-[#9CA3AF] dark:text-neutral-400">
+                {icon}
+              </span>
+              <span>{label}</span>
+            </Link>
+          ))}
+        </div>
+      ))}
+
+      <button
+        onClick={onLogout}
+        className="group flex w-full items-center gap-3 border-t border-neutral-200 px-4 py-3 text-xs font-medium text-[#4B5563] transition-colors duration-200 hover:bg-red-50 hover:text-red-500 active:bg-red-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-red-950/20 dark:hover:text-red-400 dark:active:bg-red-950/20"
+      >
+        <MdOutlineLogout className="text-base text-[#9CA3AF] transition-colors duration-200 group-hover:text-red-500 dark:text-neutral-400" />
+        <span>Sign Out</span>
+      </button>
+    </motion.div>
+  );
+};
 
 const Header = () => {
   const {
@@ -445,7 +592,7 @@ const Header = () => {
                   >
                     <AvatarComponent
                       name={userDetails?.name}
-                      imageUrl={userDetails?.avatar.url}
+                      imageUrl={userDetails?.avatar?.url}
                       size="small"
                       plan={userDetails?.subscription}
                       isLoading={userLoading}
@@ -456,133 +603,14 @@ const Header = () => {
 
                   <AnimatePresence>
                     {showmenu && (
-                      <motion.div
-                        ref={menuRef}
-                        initial={{ opacity: 0, y: 8, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 8, scale: 0.98 }}
-                        transition={{
-                          duration: 0.18,
-                          ease: [0.22, 1, 0.36, 1],
-                        }}
-                        className="
-              absolute
-              right-0
-              top-full
-              z-50
-              mt-3
-              w-[260px]
-              overflow-hidden
-              rounded-2xl
-              border
-              border-neutral-200
-              bg-white
-              shadow-2xl
-              dark:border-neutral-800
-              dark:bg-[#1A1D20]
-            "
-                      >
-                        <div className="border-b border-neutral-200 px-4 py-4 dark:border-neutral-800">
-                          <div className="flex items-center gap-4">
-                            <AvatarComponent
-                              name={userDetails?.name}
-                              imageUrl={userDetails?.avatar.url}
-                              size="medium"
-                              plan={userDetails?.subscription}
-                              isLoading={userLoading}
-                              className="rounded-full"
-                              showBadge
-                            />
-
-                            <div>
-                              <h1 className="text-sm font-medium text-neutral-900 dark:text-white">
-                                {userDetails?.name || "User"}
-                              </h1>
-
-                              <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                                {userDetails?.email || ""}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="py-2">
-                          {[
-                            {
-                              to: "/profile",
-                              icon: <LuUserRound />,
-                              label: "Profile",
-                            },
-                            {
-                              to: "/myorders",
-                              icon: <BsBoxSeam />,
-                              label: "Orders",
-                            },
-                            {
-                              to: "/chat",
-                              icon: <FiMessageSquare />,
-                              label: "Chat",
-                            },
-                            {
-                              to: "/wishlist",
-                              icon: <IoIosHeartEmpty />,
-                              label: "Wishlist",
-                            },
-                            {
-                              to: "/contact",
-                              icon: <CiMail />,
-                              label: "Contact Us",
-                            },
-                          ].map(({ to, icon, label }) => (
-                            <Link
-                              key={label}
-                              to={to}
-                              onClick={() => setShowmenu(false)}
-                              className="
-                    flex
-                    items-center
-                    gap-3
-                    px-4
-                    py-3
-                    text-sm
-                    text-neutral-700
-                    transition-colors
-                    duration-200
-                    active:bg-neutral-100
-                    dark:text-neutral-200
-                    dark:active:bg-neutral-800
-                  "
-                            >
-                              <span className="text-lg">{icon}</span>
-                              <span>{label}</span>
-                            </Link>
-                          ))}
-                        </div>
-
-                        <button
-                          onClick={handleLogoutClick}
-                          className="
-                flex
-                w-full
-                items-center
-                gap-3
-                border-t
-                border-neutral-200
-                px-4
-                py-3
-                text-sm
-                text-red-500
-                transition-colors
-                duration-200
-                active:bg-red-50
-                dark:border-neutral-800
-                dark:active:bg-red-950/20
-              "
-                        >
-                          <MdOutlineLogout className="text-lg" />
-                          <span>Logout</span>
-                        </button>
-                      </motion.div>
+                      <ProfileDropdown
+                        userDetails={userDetails}
+                        userLoading={userLoading}
+                        menuRef={menuRef}
+                        onClose={() => setShowmenu(false)}
+                        onLogout={handleLogoutClick}
+                        mobile
+                      />
                     )}
                   </AnimatePresence>
                 </div>
@@ -1201,7 +1229,7 @@ dark:border-neutral-700 dark:bg-[#1A1D20] dark:text-white dark:focus:ring-blue-9
                     >
                       <AvatarComponent
                         name={userDetails?.name}
-                        imageUrl={userDetails?.avatar.url}
+                        imageUrl={userDetails?.avatar?.url}
                         size="medium"
                         plan={userDetails?.subscription}
                         isLoading={userLoading}
@@ -1212,88 +1240,13 @@ dark:border-neutral-700 dark:bg-[#1A1D20] dark:text-white dark:focus:ring-blue-9
 
                     <AnimatePresence>
                       {showmenu && (
-                        <motion.div
-                          ref={menuRef}
-                          initial={{ opacity: 0, y: 8, scale: 0.98 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 8, scale: 0.98 }}
-                          transition={{
-                            duration: 0.18,
-                            ease: [0.22, 1, 0.36, 1],
-                          }}
-                          className="absolute right-0 top-full z-50 mt-3 w-[290px] overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-[#1A1D20]"
-                        >
-                          <div className="border-b border-neutral-200 px-4 py-4 dark:border-neutral-800">
-                            <div className="flex items-center gap-4">
-                              <AvatarComponent
-                                name={userDetails?.name}
-                                imageUrl={userDetails?.avatar.url}
-                                size="medium"
-                                plan={userDetails?.subscription}
-                                isLoading={userLoading}
-                                className="rounded-full"
-                              />
-
-                              <div>
-                                <h1 className="text-sm font-medium text-neutral-900 dark:text-white">
-                                  {userDetails?.name || "User"}
-                                </h1>
-
-                                <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                                  {userDetails?.email || ""}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="py-2">
-                            {[
-                              {
-                                to: "/profile",
-                                icon: <LuUserRound />,
-                                label: "Profile",
-                              },
-                              {
-                                to: "/myorders",
-                                icon: <BsBoxSeam />,
-                                label: "Orders",
-                              },
-                              {
-                                to: "/chat",
-                                icon: <FiMessageSquare />,
-                                label: "Chat",
-                              },
-                              {
-                                to: "/wishlist",
-                                icon: <IoIosHeartEmpty />,
-                                label: "Wishlist",
-                              },
-                              {
-                                to: "/contact",
-                                icon: <CiMail />,
-                                label: "Contact Us",
-                              },
-                            ].map(({ to, icon, label }) => (
-                              <Link
-                                key={label}
-                                to={to}
-                                onClick={() => setShowmenu(false)}
-                                className="flex items-center gap-3 px-4 py-3 text-sm text-neutral-700 transition-colors duration-200 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
-                              >
-                                <span className="text-lg">{icon}</span>
-                                <span>{label}</span>
-                              </Link>
-                            ))}
-                          </div>
-
-                          <button
-                            onClick={handleLogoutClick}
-                            className="flex w-full items-center gap-3 border-t border-neutral-200 px-4 py-3 text-sm text-red-500 transition-colors duration-200 hover:bg-red-50 dark:border-neutral-800 dark:hover:bg-red-950/20"
-                          >
-                            <MdOutlineLogout className="text-lg" />
-                            <span>Logout</span>
-                          </button>
-                        </motion.div>
+                        <ProfileDropdown
+                          userDetails={userDetails}
+                          userLoading={userLoading}
+                          menuRef={menuRef}
+                          onClose={() => setShowmenu(false)}
+                          onLogout={handleLogoutClick}
+                        />
                       )}
                     </AnimatePresence>
                   </div>
