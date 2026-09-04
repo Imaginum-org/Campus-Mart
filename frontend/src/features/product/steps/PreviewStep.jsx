@@ -127,9 +127,11 @@ const PreviewStep = () => {
 
         pickup_address_snapshot: {
           address_line:
-            formData.address?.address_line || formData.address?.line1,
+            formData.address?.name ||
+            formData.address?.address_line ||
+            formData.address?.line1,
 
-          city: formData.address?.city,
+          city: formData.address?.detail || formData.address?.city,
 
           state: formData.address?.state,
 

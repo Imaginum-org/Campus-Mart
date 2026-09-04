@@ -11,7 +11,7 @@ import {
   FolderIcon,
 } from "@animateicons/react/lucide";
 import { Settings01Icon } from "@animateicons/react/huge";
-import { Crown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { ChevronLeft, Crown, Menu } from "lucide-react";
 import Loader from "../../../Components/ui/Loader.jsx";
 import { useUser } from "../../../context/useUserContext.jsx";
 import AvatarComponent from "../../../Components/common/AvatarComponent.jsx";
@@ -116,26 +116,14 @@ function Profile_left_part() {
           : "w-[12.6rem] lg:w-[14.7rem] xl:w-[17.15rem] xl:max-w-[17.15rem]"
       }`}
     >
-      <button
-        type="button"
-        onClick={() => setIsCollapsed((current) => !current)}
-        className="absolute right-0 top-12 z-10 flex h-8 w-8 translate-x-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-[#8292A6] shadow-[0_8px_20px_rgba(15,23,42,0.08)] transition-colors duration-200 hover:border-[#C7CDFE] hover:bg-[#F5F4FF] hover:text-[#3838EC] dark:border-gray-800 dark:bg-[#171717] dark:text-[#AAB9C5] dark:hover:bg-[#1c1c1c]"
-        aria-label={isCollapsed ? "Expand profile menu" : "Collapse profile menu"}
-        title={isCollapsed ? "Expand" : "Collapse"}
-      >
-        {isCollapsed ? (
-          <PanelLeftOpen size={18} strokeWidth={1.8} />
-        ) : (
-          <PanelLeftClose size={18} strokeWidth={1.8} />
-        )}
-      </button>
-
       {/* Scrollable Menu Area */}
       <div className="flex-1 overflow-y-auto no-scrollbar px-2">
         {/* Top Profile Section */}
         <div
-          className={`flex items-center border-b border-gray-200 px-2 py-[1.35rem] transition-[padding] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] dark:border-gray-800/50 mb-4 ${
-            isCollapsed ? "justify-center" : ""
+          className={`relative flex items-center px-2 transition-[padding] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] mb-3 ${
+            isCollapsed
+              ? "justify-center border-b-0 py-4"
+              : "border-b border-gray-200 py-[1.35rem] dark:border-gray-800/50"
           }`}
         >
           <div className="relative">
@@ -161,16 +149,43 @@ function Profile_left_part() {
               {userDetails?.college || "VIT Vellore"}
             </p>
           </div>
+          <button
+            type="button"
+            onClick={() => setIsCollapsed((current) => !current)}
+            className={`ml-auto flex shrink-0 items-center justify-center text-[#8292A6] transition-all duration-200 hover:text-[#3838EC] dark:text-[#AAB9C5] dark:hover:text-white ${
+              isCollapsed
+                ? "absolute left-1/2 top-[4.35rem] h-10 w-10 -translate-x-1/2 rounded-xl border border-gray-100 bg-white shadow-sm hover:border-[#DDD8FF] hover:bg-[#F5F2FF] dark:border-gray-800 dark:bg-[#171717] dark:hover:bg-[#1c1c1c]"
+                : "h-8 w-8 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1c1c1c]"
+            }`}
+            aria-label={
+              isCollapsed ? "Expand profile menu" : "Collapse profile menu"
+            }
+            title={isCollapsed ? "Expand" : "Collapse"}
+          >
+            {isCollapsed ? (
+              <Menu size={21} strokeWidth={2} />
+            ) : (
+              <ChevronLeft size={21} strokeWidth={2.2} />
+            )}
+          </button>
         </div>
 
         {/* Main Menu */}
-        <nav className="flex flex-col gap-1">
+        <nav
+          className={`flex flex-col gap-1 transition-[padding] duration-300 ${
+            isCollapsed ? "pt-9" : ""
+          }`}
+        >
           {mainMenu.map((item) => (
             <NavItem key={item.path} {...item} />
           ))}
         </nav>
 
-        <div className="w-full h-px bg-gray-200 dark:bg-gray-800 my-3.5"></div>
+        <div
+          className={`w-full h-px bg-gray-200 dark:bg-gray-800 ${
+            isCollapsed ? "my-2" : "my-3.5"
+          }`}
+        ></div>
 
         {/* Account Menu */}
         <div className={`mb-2 px-4 ${isCollapsed ? "hidden" : ""}`}>

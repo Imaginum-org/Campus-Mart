@@ -11,13 +11,14 @@ export const removeAvatar = () => axios.delete("/api/user/removeAvatar");
 
 export const deleteAccount = () => axios.delete("/api/user/deleteAccount");
 
-export const createAddress = (data) => axios.post("/api/address", data);
+export const createPickupSpot = (data) => axios.post("/api/pickup-spots", data);
 
-export const getUserAddresses = () => axios.get("/api/address");
+export const getUserPickupSpots = () => axios.get("/api/pickup-spots");
 
-export const updateAddress = (id, data) =>
-  axios.put(`/api/address/${id}`, data);
+export const updatePickupSpot = (id, data) =>
+  axios.put(`/api/pickup-spots/${id}`, data);
 
-export const deleteAddress = (id) => axios.delete(`/api/address/${id}`);
+export const deletePickupSpot = (id) => axios.delete(`/api/pickup-spots/${id}`);
 
-export const setDefaultAddress = (id) => axios.patch(`/api/address/${id}`);
+export const setPrimaryPickupSpot = (id) =>
+  axios.patch(`/api/pickup-spots/${id}/primary`);

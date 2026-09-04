@@ -113,13 +113,6 @@ const userSchema = new Schema(
       default: null,
     },
 
-    address_details: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Address",
-      },
-    ],
-
     subscription_details: {
       type: Schema.Types.ObjectId,
       ref: "Subscription",

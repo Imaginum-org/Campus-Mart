@@ -22,7 +22,7 @@ export const validatePricing = (formData) => {
   }
 
   if (!formData.address) {
-    errors.address = "Please add a pickup address";
+    errors.address = "Please add a pickup spot";
   }
 
   if (!formData.termsAccepted) {

@@ -15,32 +15,32 @@ const PricingStep = () => {
   const { formData, updateField, nextStep, errors, validateAndProceed } =
     useProductListing();
 const [legalTab, setLegalTab] = useState(null);
-  const [loadingAddress, setLoadingAddress] = useState(false);
+  const [loadingPickupSpot, setLoadingPickupSpot] = useState(false);
 
-  // FETCH ADDRESS
+  // FETCH PICKUP SPOT
   useEffect(() => {
-    const fetchAddress = async () => {
+    const fetchPickupSpot = async () => {
       try {
-        setLoadingAddress(true);
+        setLoadingPickupSpot(true);
 
-        const res = await axios.get("/api/address");
+        const res = await axios.get("/api/pickup-spots");
 
-        const addresses = res.data?.addresses || [];
+        const pickupSpots = res.data?.pickupSpots || [];
 
-        const defaultAddress =
-          addresses.find((addr) => addr.isDefault) || addresses[0];
+        const primaryPickupSpot =
+          pickupSpots.find((spot) => spot.isPrimary) || pickupSpots[0];
 
-        updateField("address", defaultAddress || null);
+        updateField("address", primaryPickupSpot || null);
       } catch (error) {
-        toast.error("Failed to fetch address");
+        toast.error("Failed to fetch pickup spot");
         console.log(error.message);
       } finally {
-        setLoadingAddress(false);
+        setLoadingPickupSpot(false);
       }
     };
 
     if (!formData.address) {
-      fetchAddress();
+      fetchPickupSpot();
     }
   }, []);
 
@@ -248,36 +248,44 @@ const [legalTab, setLegalTab] = useState(null);
                 </div>
               </div>
 
-              {/* Pickup Address */}
+              {/* Pickup Spot */}
               <div>
                 <label className="text-sm font-semibold text-[#374151]">
-                  Pickup Address
+                  Pickup Spot
                   <RequiredAsterisk />
                 </label>
 
                 <div className="mt-2 min-h-[110px] rounded-xl border bg-white p-4 flex flex-col justify-between">
                   <div>
-                    {loadingAddress ? (
+                    {loadingPickupSpot ? (
                       <p className="text-sm text-[#6B7280]">
-                        Loading address...
+                        Loading pickup spot...
                       </p>
                     ) : formData.address ? (
                       <>
                         <p className="font-medium text-[#111827] leading-6">
-                          {formData.address.address_line ||
+                          {formData.address.name ||
+                            formData.address.address_line ||
                             formData.address.line1}
                         </p>
 
                         <p className="mt-2 text-sm text-[#6B7280] leading-6">
-                          {formData.address.city}, {formData.address.state}
+                          {formData.address.detail ||
+                            [formData.address.city, formData.address.state]
+                              .filter(Boolean)
+                              .join(", ")}
                         </p>
 
-                        <p className="text-sm text-[#6B7280]">
-                          {formData.address.pincode}
-                        </p>
+                        {formData.address.pincode && (
+                          <p className="text-sm text-[#6B7280]">
+                            {formData.address.pincode}
+                          </p>
+                        )}
                       </>
                     ) : (
-                      <p className="text-sm text-red-500">No address found</p>
+                      <p className="text-sm text-red-500">
+                        No pickup spot found
+                      </p>
                     )}
                   </div>
 

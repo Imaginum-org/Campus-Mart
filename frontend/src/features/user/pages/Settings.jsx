@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import {
   BadgeCheck,
   Camera,
-  Home,
   LogOut,
   Mail,
   MapPin,
@@ -23,48 +22,23 @@ import AvatarComponent from "../../../Components/common/AvatarComponent.jsx";
 import Loader from "../../../Components/ui/Loader.jsx";
 import { useUser } from "../../../context/useUserContext.jsx";
 import { logoutUser } from "../../auth/api/authApi";
-import AddressModal from "../components/AddressModal.jsx";
+import PickupSpotModal from "../components/PickupSpotModal.jsx";
 import AlertDialogDemo from "../components/Deletebutton.jsx";
 import Profile_left_part from "../components/Profile_left_part.jsx";
 import SecuritySettings from "../components/SecuritySettings.jsx";
 import {
-  createAddress,
-  deleteAddress,
-  getUserAddresses,
   getUserProfile,
-  setDefaultAddress,
-  updateAddress,
+  createPickupSpot,
+  deletePickupSpot,
+  getUserPickupSpots,
+  setPrimaryPickupSpot,
+  updatePickupSpot,
   updateAvatar,
   updateProfile,
   removeAvatar,
 } from "../api/userApi";
 
-const tabs = [
-  "Profile",
-  "Security",
-  "Addresses",
-  "Pickup Spots",
-  "Verification",
-];
-
-const pickupSpots = [
-  {
-    id: "main-canteen",
-    name: "Main Canteen",
-    detail: "Ground floor, near entrance",
-    isPrimary: true,
-  },
-  {
-    id: "central-library",
-    name: "Central Library",
-    detail: "Lobby area, open till 9 PM",
-  },
-  {
-    id: "main-gate",
-    name: "Main Gate",
-    detail: "Security cabin side",
-  },
-];
+const tabs = ["Profile", "Security", "Pickup Spots", "Verification"];
 
 const formatMemberSince = (date) => {
   if (!date) return "Member since date unavailable";
@@ -92,7 +66,7 @@ function Settings() {
   const [isProfileEditing, setIsProfileEditing] = useState(false);
   const [profileChanged, setProfileChanged] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
-  const [addresses, setAddresses] = useState([]);
+  const [pickupSpots, setPickupSpots] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -100,9 +74,9 @@ function Settings() {
 
   const fileInputRef = useRef(null);
 
-  const defaultAddress = useMemo(
-    () => addresses.find((address) => address.isDefault),
-    [addresses],
+  const primaryPickupSpot = useMemo(
+    () => pickupSpots.find((spot) => spot.isPrimary),
+    [pickupSpots],
   );
 
   useEffect(() => {
@@ -142,17 +116,17 @@ function Settings() {
     fetchUser();
   }, [contextUserDetails, navigate]);
 
-  const fetchAddresses = async () => {
+  const fetchPickupSpots = async () => {
     try {
-      const res = await getUserAddresses();
-      if (res.data.success) setAddresses(res.data.addresses);
+      const res = await getUserPickupSpots();
+      if (res.data.success) setPickupSpots(res.data.pickupSpots);
     } catch {
-      toast.error("Failed to load addresses");
+      toast.error("Failed to load pickup spots");
     }
   };
 
   useEffect(() => {
-    fetchAddresses();
+    fetchPickupSpots();
   }, []);
 
   const handleSaveProfile = async () => {
@@ -260,53 +234,53 @@ function Settings() {
     }
   };
 
-  const handleAddAddress = () => {
+  const handleAddPickupSpot = () => {
     setEditingIndex(null);
     setIsModalOpen(true);
   };
 
-  const handleEditAddress = (index) => {
+  const handleEditPickupSpot = (index) => {
     setEditingIndex(index);
     setIsModalOpen(true);
   };
 
-  const handleSaveAddress = async (data) => {
+  const handleSavePickupSpot = async (data) => {
     try {
       let res;
       if (editingIndex !== null) {
-        res = await updateAddress(addresses[editingIndex]?._id, data);
+        res = await updatePickupSpot(pickupSpots[editingIndex]?._id, data);
       } else {
-        res = await createAddress(data);
+        res = await createPickupSpot(data);
       }
 
       if (res.data.success) {
-        toast.success("Address saved");
-        await fetchAddresses();
+        toast.success("Pickup spot saved");
+        await fetchPickupSpots();
         setIsModalOpen(false);
         setEditingIndex(null);
       }
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to save address");
+      toast.error(err?.response?.data?.message || "Failed to save pickup spot");
     }
   };
 
-  const handleDeleteAddress = async (index) => {
+  const handleDeletePickupSpot = async (index) => {
     try {
-      await deleteAddress(addresses[index]?._id);
-      toast.success("Address deleted");
-      fetchAddresses();
+      await deletePickupSpot(pickupSpots[index]?._id);
+      toast.success("Pickup spot deleted");
+      fetchPickupSpots();
     } catch {
-      toast.error("Failed to delete address");
+      toast.error("Failed to delete pickup spot");
     }
   };
 
-  const handleSetDefaultAddress = async (id) => {
+  const handleSetPrimaryPickupSpot = async (id) => {
     try {
-      await setDefaultAddress(id);
-      toast.success("Default address updated");
-      fetchAddresses();
+      await setPrimaryPickupSpot(id);
+      toast.success("Primary pickup spot updated");
+      fetchPickupSpots();
     } catch {
-      toast.error("Failed to set default address");
+      toast.error("Failed to set primary pickup spot");
     }
   };
 
@@ -353,7 +327,7 @@ function Settings() {
     },
     {
       label: "Campus",
-      value: defaultAddress?.line2 || defaultAddress?.city || "VIT Vellore",
+      value: primaryPickupSpot?.name || "VIT Vellore",
       icon: MapPin,
     },
   ];
@@ -376,15 +350,15 @@ function Settings() {
               </p>
             </header>
 
-            <nav className="mb-6 flex max-w-fit gap-2 overflow-x-auto rounded-xl border border-[#E4E7EF] bg-[#F1F3F8] p-1">
+            <nav className="mb-6 flex max-w-fit gap-2 overflow-x-auto rounded-xl border border-[#E4E7EF] bg-[#F1F3F8] p-1 dark:border-[#2A2E35] dark:bg-[#1B1F27]">
               {tabs.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`min-w-max rounded-lg px-3.5 py-2 text-sm font-medium transition ${
                     activeTab === tab
-                      ? "bg-white text-[#111827] shadow-sm ring-1 ring-black/5"
-                      : "text-[#98A1B2] hover:text-[#4B5563]"
+                      ? "bg-white text-[#111827] shadow-sm ring-1 ring-black/5 dark:bg-[#252A35] dark:text-white dark:ring-white/10"
+                      : "text-[#98A1B2] hover:text-[#4B5563] dark:text-[#8F9BAA] dark:hover:text-white"
                   }`}
                 >
                   {tab}
@@ -617,36 +591,9 @@ function Settings() {
               <SecuritySettings email={userDetails?.email} />
             )}
 
-            {activeTab === "Addresses" && (
-              <section>
-                <div className="grid gap-5 lg:grid-cols-2">
-                  {addresses.map((address, index) => (
-                    <AddressCard
-                      key={address._id}
-                      address={address}
-                      index={index}
-                      onEdit={() => handleEditAddress(index)}
-                      onDelete={() => handleDeleteAddress(index)}
-                      onSetDefault={() => handleSetDefaultAddress(address._id)}
-                    />
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleAddAddress}
-                  disabled={addresses.length >= 3}
-                  className="mt-5 flex h-10 w-full items-center justify-center rounded-xl bg-[#EEF0FF] text-sm font-semibold text-[#4F46FF] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <Plus size={16} className="mr-1.5" />
-                  Add new address
-                </button>
-              </section>
-            )}
-
             {activeTab === "Pickup Spots" && (
               <section className="max-w-[770px]">
-                <div className="mb-5 flex gap-4 rounded-2xl border border-[#CDD2FF] bg-[#F0F1FF] p-3 text-sm leading-7 text-[#526071]">
+                <div className="mb-5 flex gap-4 rounded-2xl border border-[#CDD2FF] bg-[#F0F1FF] p-3 text-sm leading-7 text-[#526071] dark:border-[#343A5A] dark:bg-[#202438] dark:text-[#C8D1DE]">
                   <MapPin className="mt-1 shrink-0 text-[#4F46FF]" size={15} />
                   <p>
                     Pickup spots are shared with buyers when they message you.
@@ -654,18 +601,24 @@ function Settings() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1c1c1c]">
+                <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-[#2A2E35] dark:bg-[#181A1F]">
                   <h2 className="mb-5 text-base font-bold">
                     Your pickup spots
                   </h2>
                   <div className="space-y-4">
-                    {pickupSpots.map((spot) => (
+                    {pickupSpots.length === 0 && (
+                      <div className="rounded-2xl border border-dashed border-[#D8DDEA] bg-[#FAFBFE] p-6 text-center text-sm font-medium text-[#98A1B2] dark:border-[#303641] dark:bg-[#20242B] dark:text-[#AAB9C5]">
+                        No pickup spots yet. Add a familiar campus location to
+                        share with buyers.
+                      </div>
+                    )}
+                    {pickupSpots.map((spot, index) => (
                       <div
-                        key={spot.id}
+                        key={spot._id}
                         className={`flex items-center justify-between rounded-2xl border p-4 ${
                           spot.isPrimary
-                            ? "border-[#B8B6FF] bg-[#FAFAFF]"
-                            : "border-[#E4E7EF] bg-[#FAFBFE]"
+                            ? "border-[#B8B6FF] bg-[#FAFAFF] dark:border-[#5E58D8] dark:bg-[#202438]"
+                            : "border-[#E4E7EF] bg-[#FAFBFE] dark:border-[#303641] dark:bg-[#20242B]"
                         }`}
                       >
                         <div className="flex items-center gap-4">
@@ -673,7 +626,7 @@ function Settings() {
                             className={`flex h-8 w-8 items-center justify-center rounded-xl ${
                               spot.isPrimary
                                 ? "bg-[#554BFF] text-white"
-                                : "bg-[#E9ECF3] text-[#98A1B2]"
+                                : "bg-[#E9ECF3] text-[#98A1B2] dark:bg-[#2C3340] dark:text-[#9AA7B8]"
                             }`}
                           >
                             <MapPin size={16} />
@@ -687,18 +640,35 @@ function Settings() {
                                 </span>
                               )}
                             </div>
-                            <p className="mt-1 text-xs font-medium text-[#98A1B2]">
+                            <p className="mt-1 text-xs font-medium text-[#98A1B2] dark:text-[#8F9BAA]">
                               {spot.detail}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-5">
                           {!spot.isPrimary && (
-                            <button className="text-xs font-semibold text-[#4F46FF]">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleSetPrimaryPickupSpot(spot._id)
+                              }
+                              className="text-xs font-semibold text-[#4F46FF]"
+                            >
                               Set primary
                             </button>
                           )}
-                          <button className="text-[#98A1B2]">
+                          <button
+                            type="button"
+                            onClick={() => handleEditPickupSpot(index)}
+                            className="text-xs font-semibold text-[#64707D] dark:text-[#B8C2D0]"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePickupSpot(index)}
+                            className="text-[#98A1B2] transition hover:text-[#EF4444] dark:text-[#8F9BAA] dark:hover:text-[#F87171]"
+                          >
                             <Trash2 size={16} />
                           </button>
                         </div>
@@ -709,12 +679,14 @@ function Settings() {
 
                 <button
                   type="button"
-                  className="mt-5 flex h-10 w-full items-center justify-center rounded-xl bg-[#EEF0FF] text-sm font-semibold text-[#4F46FF]"
+                  onClick={handleAddPickupSpot}
+                  disabled={pickupSpots.length >= 3}
+                  className="mt-5 flex h-10 w-full items-center justify-center rounded-xl bg-[#EEF0FF] text-sm font-semibold text-[#4F46FF] transition hover:bg-[#E3E5FF] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#22263A] dark:text-[#8F8AFF] dark:hover:bg-[#282E4A]"
                 >
                   <Plus size={16} className="mr-1.5" />
                   Add pickup spot
                 </button>
-                <p className="mt-5 flex gap-2 text-sm font-medium text-[#98A1B2]">
+                <p className="mt-5 flex gap-2 text-sm font-medium text-[#98A1B2] dark:text-[#AAB9C5]">
                   <Zap className="shrink-0 text-[#FF7A30]" size={16} />
                   Pro tip: Always meet in well-lit public campus areas. Never
                   share your hostel room or home address.
@@ -742,18 +714,18 @@ function Settings() {
               </section>
             )}
 
-            <AddressModal
+            <PickupSpotModal
               isOpen={isModalOpen}
               onClose={() => setIsModalOpen(false)}
-              onSave={handleSaveAddress}
+              onSave={handleSavePickupSpot}
               initialData={
                 editingIndex !== null
-                  ? addresses[editingIndex]
-                  : { line1: "", line2: "", state: "", city: "", pincode: "" }
+                  ? pickupSpots[editingIndex]
+                  : { name: "", detail: "", isPrimary: false }
               }
               mode={editingIndex !== null ? "update" : "create"}
-              addressId={
-                editingIndex !== null ? addresses[editingIndex]?._id : null
+              pickupSpotId={
+                editingIndex !== null ? pickupSpots[editingIndex]?._id : null
               }
             />
           </div>
@@ -804,73 +776,6 @@ function AccountCard({ onLogout }) {
         <AlertDialogDemo />
       </div>
     </div>
-  );
-}
-
-function AddressCard({ address, index, onEdit, onDelete, onSetDefault }) {
-  const isCampus = index === 0 || address.isDefault;
-  const title = isCampus ? "Campus" : "Home";
-  const Icon = isCampus ? MapPin : Home;
-
-  return (
-    <article
-      className={`rounded-2xl border bg-white px-5 py-4 shadow-sm dark:bg-[#1c1c1c] ${
-        address.isDefault
-          ? "border-[#514BFF] ring-2 ring-[#514BFF]"
-          : "border-[#E2E6EF]"
-      }`}
-    >
-      <div className="mb-1 flex items-start justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Icon
-            size={15}
-            className={address.isDefault ? "text-[#4F46FF]" : "text-[#98A1B2]"}
-          />
-          <h3 className="text-[0.95rem] font-semibold tracking-wide ">
-            {title}
-          </h3>
-        </div>
-        {address.isDefault ? (
-          <span className="rounded-lg bg-[#DDFBE9] px-2.5 py-0.5 text-xs font-semibold text-[#16A34A]">
-            Primary
-          </span>
-        ) : (
-          <button
-            type="button"
-            onClick={onSetDefault}
-            className="text-xs font-semibold text-[#4F46FF]"
-          >
-            Set primary
-          </button>
-        )}
-      </div>
-
-      <div className="min-h-[70px] text-[0.85rem] leading-6 text-[#334155] dark:text-[#D7D7D7]">
-        <p>{address.line1}</p>
-        {address.line2 && <p>{address.line2}</p>}
-        <p>
-          {address.city}, {address.state} {address.pincode}
-        </p>
-      </div>
-      <div className="flex justify-between mt-4">
-        <button
-          type="button"
-          onClick={onEdit}
-          className="flex items-center gap-2 text-xs font-semibold text-[#4B5563] dark:text-[#D7D7D7]"
-        >
-          <Pencil size={14} />
-          Edit
-        </button>
-        <button
-          type="button"
-          onClick={onDelete}
-          className="flex items-center gap-2 text-xs font-semibold text-[#EF4444]"
-        >
-          <Trash2 size={14} />
-          Delete
-        </button>
-      </div>
-    </article>
   );
 }
 

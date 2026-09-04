@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  AlertCircle,
   Check,
   Eye,
   EyeOff,
@@ -41,7 +40,9 @@ function ResetPassword() {
   const navigate = useNavigate();
   const { token } = useParams();
   const strength = getPasswordStrength(password);
-  const showPasswordOk = strength?.level === "awesome";
+  const showPasswordOk = isPasswordStrongEnough(password);
+  const showPasswordRequirements =
+    password.length > 0 && !isPasswordStrongEnough(password);
   const clearFormMessage = () => setFormMessage(null);
 
   useEffect(() => {
@@ -221,7 +222,7 @@ function ResetPassword() {
                           New password
                         </span>
                         <input
-                          className={`h-[6.3vh] w-full rounded-xl border pl-10 text-[0.6875rem] text-[#111827] outline-none transition placeholder:text-gray-500/60 dark:text-white sm:h-11 md:h-10 md:rounded-xl md:pl-11 md:text-xs lg:h-10 xl:h-[6.4vh] 2xl:h-[6.4vh] pr-[5.75rem] md:pr-[6.5rem] ${
+                          className={`h-[6.3vh] w-full rounded-xl border pl-10 text-[0.6875rem] text-[#111827] outline-none transition placeholder:text-gray-500/60 dark:text-white sm:h-11 md:h-10 md:rounded-xl md:pl-11 md:text-xs lg:h-10 xl:h-[6.4vh] 2xl:h-[6.4vh] pr-20 ${
                             hasPasswordError
                               ? "border-red-500 bg-red-50 text-red-900 focus:border-red-500 focus:ring-4 focus:ring-red-500/20 dark:border-red-500/80 dark:bg-[#1A1D20]"
                               : "border-transparent bg-slate-50 focus:border-[#393AF2] focus:bg-white focus:ring-4 focus:ring-[#393AF2]/10 dark:bg-[#1A1D20] dark:focus:bg-[#1A1D20]"
@@ -236,18 +237,6 @@ function ResetPassword() {
                           required
                         />
                         <div className="absolute right-[3.5rem] top-1/2 -translate-y-1/2 flex items-center gap-2">
-                          <button
-                            type="button"
-                            className="relative group flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:text-[#393AF2] focus:outline-none focus:ring-2 focus:ring-[#393AF2]/30"
-                            aria-label="Password requirements"
-                          >
-                            <AlertCircle className="size-[1rem]" />
-                            <span className="pointer-events-none absolute right-full top-1/2 hidden w-[16rem] -translate-y-1/2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-[0.7rem] text-slate-700 shadow-lg opacity-0 transition-all duration-200 group-hover:block group-hover:opacity-100 dark:border-[#3A3A3A] dark:bg-[#111827] dark:text-[#E5E7EB]">
-                              Password must be 6-8 characters, include letters
-                              and numbers, and contain both upper and lower case
-                              letters.
-                            </span>
-                          </button>
                           {showPasswordOk ? (
                             <span className="text-emerald-600 dark:text-emerald-400">
                               <Check className="size-[1rem]" strokeWidth={3} />
@@ -270,6 +259,12 @@ function ResetPassword() {
                         </button>
                       </span>
                       <PasswordStrengthMeter password={password} />
+                      {showPasswordRequirements ? (
+                        <p className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-[0.7rem] font-medium leading-5 text-red-600 ring-1 ring-red-100 dark:bg-red-950/20 dark:text-red-300 dark:ring-red-900/40">
+                          Use at least 8 characters with uppercase, lowercase,
+                          and a number. Add a symbol for a stronger password.
+                        </p>
+                      ) : null}
                     </label>
 
                     <label className="block">
